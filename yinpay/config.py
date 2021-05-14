@@ -12,7 +12,7 @@ class Instance:
     MAIL_PASSWORD = 'apana1jude1'
     MAIL_DEFAULT_SENDER = 'no-reply@yinime.com'
     RQ_QUEUES = ['yin_pay_default']
-    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:Apana1jude1$$@localhost/yin_pay'
+    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root@localhost/yin_pay'
 
 
 class Development(Instance):

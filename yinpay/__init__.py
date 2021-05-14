@@ -19,4 +19,8 @@ def create_app():
     paginate.init_app(app)
     ma.init_app(app)
     flask_filter.init_app(app)
+    app.register_blueprint(v0)
     return app
+
+
+from yinpay.api import v0

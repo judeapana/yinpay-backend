@@ -1,9 +1,10 @@
 from uuid import uuid4
 
+from yinpay.common import Record
 from yinpay.ext import db
 
 
-class User(db.Model):
+class User(db.Model, Record):
     id = db.Column(db.String(100), primary_key=True, nullable=False, unique=True, default=lambda: str(uuid4()))
     username = db.Column(db.String(50), nullable=False, unique=True)
     password = db.Column(db.String(255), nullable=False)
@@ -14,6 +15,8 @@ class User(db.Model):
     img = db.Column(db.String(50), nullable=True)
     disabled = db.Column(db.Boolean, default=False)
     superuser = db.Column(db.Boolean, default=False)
+    hrm_support = db.Column(db.Boolean, default=False)
+    payroll_support = db.Column(db.Boolean, default=False)
     last_logged_in = db.Column(db.DateTime)
     notes = db.Column(db.Text)
     business = db.relationship('Business', backref=db.backref('user'), cascade='all,delete,delete-orphan',
@@ -22,7 +25,7 @@ class User(db.Model):
                                 lazy=True, uselist=False)
 
 
-class Business(db.Model):
+class Business(db.Model, Record):
     id = db.Column(db.String(100), primary_key=True, nullable=False, unique=True, default=lambda: str(uuid4()))
     user_id = db.Column(db.String(100), db.ForeignKey('user.id', ondelete='cascade'), nullable=False)
     name = db.Column(db.String(100), nullable=False)
@@ -41,7 +44,7 @@ class Business(db.Model):
     setting = db.relationship('Setting', backref=db.backref('business'), cascade='all,delete', lazy=True, uselist=False)
 
 
-class BusinessAccount(db.Model):
+class BusinessAccount(db.Model, Record):
     id = db.Column(db.String(100), primary_key=True, nullable=False, unique=True, default=lambda: str(uuid4()))
     business_id = db.Column(db.String(100), db.ForeignKey('business.id', ondelete='cascade'), nullable=False)
     account_type = db.Column(db.Enum('Bank Account', 'Mobile Money'))
@@ -51,10 +54,9 @@ class BusinessAccount(db.Model):
     account_name = db.Column(db.String(50), nullable=False)
     currency = db.Column(db.String(50), nullable=False)
     primary = db.Column(db.Boolean, default=True)
-    # bank name
 
 
-class PersonnelGroup(db.Model):
+class PersonnelGroup(db.Model, Record):
     id = db.Column(db.String(100), primary_key=True, nullable=False, unique=True, default=lambda: str(uuid4()))
     name = db.Column(db.String(50), nullable=False)
     category = db.Column(db.Enum('FullTime', 'PartTime', 'Intern', 'Contract'))
@@ -71,7 +73,7 @@ class PersonnelGroup(db.Model):
                             lazy='dynamic')
 
 
-class UserMeta(db.Model):
+class UserMeta(db.Model, Record):
     id = db.Column(db.String(100), primary_key=True, nullable=False, unique=True, default=lambda: str(uuid4()))
     user_id = db.Column(db.String(100), db.ForeignKey('user.id', ondelete='cascade'), nullable=False)
     personnel_group_id = db.Column(db.String(100), db.ForeignKey('personnel_group.id', ondelete='cascade'),
@@ -103,7 +105,7 @@ class UserMeta(db.Model):
                                   lazy='dynamic')
 
 
-class NextOfKin(db.Model):
+class NextOfKin(db.Model, Record):
     id = db.Column(db.String(100), primary_key=True, nullable=False, unique=True, default=lambda: str(uuid4()))
     user_meta_id = db.Column(db.String(100), db.ForeignKey('user_meta.id', ondelete='cascade'), nullable=False)
     first_name = db.Column(db.String(50), nullable=False)
@@ -113,7 +115,7 @@ class NextOfKin(db.Model):
     img = db.Column(db.String(100), nullable=True)
 
 
-class Bank(db.Model):
+class Bank(db.Model, Record):
     id = db.Column(db.String(100), primary_key=True, nullable=False, unique=True, default=lambda: str(uuid4()))
     name = db.Column(db.String(50), nullable=False)
     notes = db.Column(db.Text, nullable=False)
@@ -122,7 +124,7 @@ class Bank(db.Model):
                                lazy='dynamic')
 
 
-class BankDetail(db.Model):
+class BankDetail(db.Model, Record):
     id = db.Column(db.String(100), primary_key=True, nullable=False, unique=True, default=lambda: str(uuid4()))
     bank_id = db.Column(db.String(100), db.ForeignKey('bank.id', ondelete='cascade'), nullable=False)
     user_meta_id = db.Column(db.String(100), db.ForeignKey('user_meta.id', ondelete='cascade'), nullable=False)
@@ -133,14 +135,14 @@ class BankDetail(db.Model):
     currency = db.Column(db.String(50), nullable=False)
 
 
-class Memo(db.Model):
+class Memo(db.Model, Record):
     id = db.Column(db.String(100), primary_key=True, nullable=False, unique=True, default=lambda: str(uuid4()))
     title = db.Column(db.String(50), nullable=False)
     date = db.Column(db.DateTime)
     text = db.Column(db.Text, nullable=False)
 
 
-class UserLeave(db.Model):
+class UserLeave(db.Model, Record):
     id = db.Column(db.String(100), primary_key=True, nullable=False, unique=True, default=lambda: str(uuid4()))
     user_meta_id = db.Column(db.String(100), db.ForeignKey('user_meta.id', ondelete='cascade'), nullable=False)
     without_pay = db.Column(db.Boolean, default=False)
@@ -151,7 +153,7 @@ class UserLeave(db.Model):
     status = db.Column(db.Boolean, default=False)
 
 
-class UserDoc(db.Model):
+class UserDoc(db.Model, Record):
     id = db.Column(db.String(100), primary_key=True, nullable=False, unique=True, default=lambda: str(uuid4()))
     user_meta_id = db.Column(db.String(100), db.ForeignKey('user_meta.id', ondelete='cascade'), nullable=False)
     date = db.Column(db.Date, nullable=False)
@@ -159,7 +161,7 @@ class UserDoc(db.Model):
     doc = db.Column(db.String(100), nullable=True)
 
 
-class Department(db.Model):
+class Department(db.Model, Record):
     id = db.Column(db.String(100), primary_key=True, nullable=False, unique=True, default=lambda: str(uuid4()))
     name = db.Column(db.String(100), nullable=False)
     abbr = db.Column(db.String(100), nullable=True)
@@ -169,9 +171,7 @@ class Department(db.Model):
                            lazy='dynamic')
 
 
-# //Payroll//////
-
-class Period(db.Model):
+class Period(db.Model, Record):
     id = db.Column(db.String(100), primary_key=True, nullable=False, unique=True, default=lambda: str(uuid4()))
     name = db.Column(db.String(50), nullable=False)
     month = db.Column(db.Date, nullable=False)
@@ -191,7 +191,7 @@ class Period(db.Model):
                                   lazy='dynamic')
 
 
-class WorkingDay(db.Model):
+class WorkingDay(db.Model, Record):
     id = db.Column(db.String(100), primary_key=True, nullable=False, unique=True, default=lambda: str(uuid4()))
     period_id = db.Column(db.String(100), db.ForeignKey('period.id', ondelete='cascade'), nullable=False)
     personnel_group_id = db.Column(db.String(100), db.ForeignKey('personnel_group.id', ondelete='cascade'),
@@ -202,7 +202,7 @@ class WorkingDay(db.Model):
     notes = db.Column(db.Text, nullable=False)
 
 
-class DailyRate(db.Model):
+class DailyRate(db.Model, Record):
     id = db.Column(db.String(100), primary_key=True, nullable=False, unique=True, default=lambda: str(uuid4()))
     period_id = db.Column(db.String(100), db.ForeignKey('period.id', ondelete='cascade'), nullable=False)
     user_meta_id = db.Column(db.String(100), db.ForeignKey('user_meta.id', ondelete='cascade'), nullable=False)
@@ -212,7 +212,7 @@ class DailyRate(db.Model):
     notes = db.Column(db.Text, nullable=False)
 
 
-class SocialSecurityRate(db.Model):
+class SocialSecurityRate(db.Model, Record):
     id = db.Column(db.String(100), primary_key=True, nullable=False, unique=True, default=lambda: str(uuid4()))
     period_id = db.Column(db.String(100), db.ForeignKey('period.id', ondelete='cascade'), nullable=False, unique=True)
     emp_rate = db.Column(db.Float, nullable=False)
@@ -221,7 +221,7 @@ class SocialSecurityRate(db.Model):
     tier2 = db.Column(db.Float, nullable=False)
 
 
-class DeductionGroup(db.Model):
+class DeductionGroup(db.Model, Record):
     id = db.Column(db.String(100), primary_key=True, nullable=False, unique=True, default=lambda: str(uuid4()))
     name = db.Column(db.String(50), nullable=False)
     personnel_group_id = db.Column(db.String(100), db.ForeignKey('personnel_group.id', ondelete='cascade'),
@@ -235,7 +235,7 @@ class DeductionGroup(db.Model):
                                       lazy='dynamic')
 
 
-class EarningGroup(db.Model):
+class EarningGroup(db.Model, Record):
     id = db.Column(db.String(100), primary_key=True, nullable=False, unique=True, default=lambda: str(uuid4()))
     name = db.Column(db.String(50), nullable=False)
     personnel_group_id = db.Column(db.String(100), db.ForeignKey('personnel_group.id', ondelete='cascade'),
@@ -250,7 +250,7 @@ class EarningGroup(db.Model):
                                     lazy='dynamic')
 
 
-class Tax(db.Model):
+class Tax(db.Model, Record):
     id = db.Column(db.String(100), primary_key=True, nullable=False, unique=True, default=lambda: uuid4())
     period_id = db.Column(db.String(100), db.ForeignKey('period.id', ondelete='cascade'), nullable=False, unique=True)
     personnel_group_id = db.Column(db.String(100), db.ForeignKey('personnel_group.id', ondelete='cascade'),
@@ -262,7 +262,7 @@ class Tax(db.Model):
     notes = db.Column(db.Text, nullable=False)
 
 
-class Attendance(db.Model):
+class Attendance(db.Model, Record):
     id = db.Column(db.String(100), primary_key=True, nullable=False, unique=True, default=lambda: str(uuid4()))
     name = db.Column(db.String(100), nullable=False)
     period_id = db.Column(db.String(100), db.ForeignKey('period.id', ondelete='cascade'), nullable=False, unique=True)
@@ -273,7 +273,7 @@ class Attendance(db.Model):
                                        lazy='dynamic')
 
 
-class UserAttendance(db.Model):
+class UserAttendance(db.Model, Record):
     id = db.Column(db.String(100), primary_key=True, nullable=False, unique=True, default=lambda: str(uuid4()))
     user_meta_id = db.Column(db.String(100), db.ForeignKey('user_meta.id', ondelete='cascade'), nullable=False)
     attendance_id = db.Column(db.String(100), db.ForeignKey('attendance.id', ondelete='cascade'), nullable=False)
@@ -281,7 +281,7 @@ class UserAttendance(db.Model):
     date = db.Column(db.Date, nullable=False)
 
 
-class UserDeduction(db.Model):
+class UserDeduction(db.Model, Record):
     id = db.Column(db.String(100), primary_key=True, nullable=False, unique=True, default=lambda: str(uuid4()))
     user_meta_id = db.Column(db.String(100), db.ForeignKey('user_meta.id', ondelete='cascade'), nullable=False)
     deduction_group_id = db.Column(db.String(100), db.ForeignKey('deduction_group.id', ondelete='cascade'),
@@ -290,7 +290,7 @@ class UserDeduction(db.Model):
     disabled = db.Column(db.Boolean, default=False)
 
 
-class UserEarning(db.Model):
+class UserEarning(db.Model, Record):
     id = db.Column(db.String(100), primary_key=True, nullable=False, unique=True, default=lambda: str(uuid4()))
     user_meta_id = db.Column(db.String(100), db.ForeignKey('user_meta.id', ondelete='cascade'), nullable=False)
     earning_group_id = db.Column(db.String(100), db.ForeignKey('earning_group.id', ondelete='cascade'), nullable=False)
@@ -298,21 +298,19 @@ class UserEarning(db.Model):
     disabled = db.Column(db.Boolean, default=False)
 
 
-class Queue(db.Model):
+class Queue(db.Model, Record):
     id = db.Column(db.String(100), primary_key=True, nullable=False, unique=True, default=lambda: str(uuid4()))
     job_name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=True)
 
 
-class Setting(db.Model):
+class Setting(db.Model, Record):
     id = db.Column(db.String(100), primary_key=True, nullable=False, unique=True, default=lambda: str(uuid4()))
     business_id = db.Column(db.String(100), db.ForeignKey('business.id', ondelete='cascade'), nullable=False,
                             unique=True)
-    atm_tax = db.Column(db.Boolean, nullable=False)
     retirement_age = db.Column(db.Integer, nullable=False)
     notify_payment_by_sms = db.Column(db.Boolean, default=False)
     notify_payment_by_email = db.Column(db.Boolean, default=False)
     enable_user_account = db.Column(db.Boolean, default=False)
-    enable_otp_verification = db.Column(db.Boolean, default=False)
     send_payslip = db.Column(db.Boolean, default=False)
     enable_user_portal = db.Column(db.Boolean, default=False)
