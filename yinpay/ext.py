@@ -1,6 +1,7 @@
 from flask_bcrypt import Bcrypt
 from flask_cors import CORS
 from flask_filter import FlaskFilter
+from flask_jwt_extended import JWTManager
 from flask_mail import Mail
 from flask_maintenance import Maintenance
 from flask_marshmallow import Marshmallow
@@ -10,6 +11,7 @@ from flask_rest_paginate import Pagination
 from flask_rq2 import RQ
 from flask_sqlalchemy import SQLAlchemy
 
+jwt = JWTManager()
 cors = CORS()
 maintenance = Maintenance()
 db = SQLAlchemy()
@@ -18,6 +20,6 @@ mail = Mail()
 migrate = Migrate()
 redis = FlaskRedis()
 rq = RQ()
-paginate = Pagination()
+pagination = Pagination()
 ma = Marshmallow()
 flask_filter = FlaskFilter()
