@@ -1,7 +1,6 @@
 from flask_restplus import Resource, Namespace, fields
 
 from yinpay.schema import BusinessSchema
-from .user_manager import model as user_model
 from ... import flask_filter, pagination, db
 from ...models import Business
 
@@ -9,12 +8,12 @@ namespace = Namespace('business', description='', path='/business')
 schema = BusinessSchema()
 
 model = namespace.model('Business', {
-    'user': fields.Nested(user_model),
+    'user_id': fields.String(),
     'name': fields.String(),
     'address': fields.String(),
     'support_email': fields.String(),
     'phone_number': fields.String(),
-    'btype': fields.String(),
+    'btype': fields.String(default='Nonprofit Organization'),
     'description': fields.String()
 })
 
@@ -27,6 +26,7 @@ class BusinessListResource(Resource):
                                          order_by=namespace.payload.get('order_by', 'created'))
         return pagination.paginate(search, schema, marshmallow=True)
 
+    @namespace.expect(model)
     def post(self):
         business = Business()
         business = schema.load(namespace.payload, session=db.session, instance=business, unknown='exclude')

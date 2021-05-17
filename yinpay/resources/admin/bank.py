@@ -26,13 +26,18 @@ class BankListResource(Resource):
 
 class BankResource(Resource):
     def get(self, pk):
-        pass
+        bank = Bank.query.get_or_404(pk)
+        return schema.dump(bank)
 
     def put(self, pk):
-        pass
+        bank = Bank.query.get_or_404(pk)
+        bank = schema.load(namespace.payload, session=db.session, instance=bank, unknown='exclude')
+        bank.save()
+        return schema.dump(bank), 200
 
     def delete(self, pk):
-        pass
+        bank = Bank.query.get_or_404(pk)
+        bank.delete(), 202
 
 
 namespace.add_resource(BankListResource, '/')

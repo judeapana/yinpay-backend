@@ -54,7 +54,7 @@ class Business(db.Model, Record):
     address = db.Column(db.Text, nullable=False)
     support_email = db.Column(db.String(50), nullable=False)
     phone_number = db.Column(db.String(50), nullable=False)
-    logo = db.Column(db.String(100), nullable=False)
+    logo = db.Column(db.String(100), nullable=True)
     btype = db.Column(db.Enum('Nonprofit Organization', 'Sole Proprietorship', 'Partnership', 'Corporation',
                               'Limited Liability Company,'),
                       nullable=False)
@@ -405,3 +405,4 @@ class Setting(db.Model, Record):
     enable_user_account = db.Column(db.Boolean, default=False)
     send_payslip = db.Column(db.Boolean, default=False)
     enable_user_portal = db.Column(db.Boolean, default=False)
+    allow_tax_paye = db.Column(db.Boolean, default=True)

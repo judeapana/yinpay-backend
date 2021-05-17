@@ -26,13 +26,18 @@ class AttendanceListResource(Resource):
 
 class AttendanceResource(Resource):
     def get(self, pk):
-        pass
+        attendance = Attendance.query.get_or_404(pk)
+        return schema.dump(attendance), 200
 
     def put(self, pk):
-        pass
+        attendance = Attendance.query.get_or_404(pk)
+        attendance = schema.load(namespace.payload, session=db.session, instance=attendance, unknown='exclude')
+        attendance.save()
+        return schema.dump(attendance), 200
 
     def delete(self, pk):
-        pass
+        attendance = Attendance.query.get_or_404(pk)
+        attendance.delete(), 202
 
 
 namespace.add_resource(AttendanceResource, '/<uuid>', endpoint='')

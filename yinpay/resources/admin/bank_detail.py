@@ -25,13 +25,18 @@ class BankDetailListResource(Resource):
 
 class BankDetailResource(Resource):
     def get(self, pk):
-        pass
+        bank_detail = BankDetail.query.get_or_404(pk)
+        return schema.dump(bank_detail), 200
 
     def put(self, pk):
-        pass
+        bank_detail = BankDetail.query.get_or_404(pk)
+        bank_detail = schema.load(namespace.payload, session=db.session, instance=bank_detail, unknown='exclude')
+        bank_detail.save()
+        return bank_detail.dump(bank_detail)
 
     def delete(self, pk):
-        pass
+        bank_detail = BankDetail.query.get_or_404(pk)
+        bank_detail.delete(), 200
 
 
 namespace.add_resource(BankDetailListResource, '/')
