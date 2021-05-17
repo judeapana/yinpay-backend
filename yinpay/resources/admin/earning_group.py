@@ -1,6 +1,6 @@
 from flask_restplus import Resource, Namespace
 
-from yinpay import flask_filter, pagination, db
+from yinpay.ext import flask_filter, pagination, db
 from yinpay.models import EarningGroup
 from yinpay.schema import EarningGroupSchema
 
@@ -26,13 +26,18 @@ class EarningGroupListResource(Resource):
 
 class EarningGroupResource(Resource):
     def get(self, pk):
-        pass
+        eg = EarningGroup.query.get_or_404(pk)
+        return eg, 200
 
     def put(self, pk):
-        pass
+        eg = EarningGroup.query.get_or_404(pk)
+        eg = schema.load(namespace.payload, session=db.session, instance=eg, unknown='exclude')
+        eg.save()
+        return schema.dump(eg), 200
 
     def delete(self, pk):
-        pass
+        eg = EarningGroup.query.get_or_404(pk)
+        return eg.delete(), 200
 
 
 namespace.add_resource(EarningGroupListResource, '/')

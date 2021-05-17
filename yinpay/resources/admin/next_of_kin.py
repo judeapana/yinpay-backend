@@ -1,6 +1,6 @@
 from flask_restplus import Resource, Namespace
 
-from yinpay import flask_filter, pagination, db
+from yinpay.ext import flask_filter, pagination, db
 from yinpay.models import NextOfKin
 from yinpay.schema import NextOfKinSchema
 
@@ -25,13 +25,18 @@ class NextOfKinListResource(Resource):
 
 class NextOfKinResource(Resource):
     def get(self, pk):
-        pass
+        nok = NextOfKin.query.get_or_404(pk)
+        return nok, 200
 
     def put(self, pk):
-        pass
+        nok = NextOfKin.query.get_or_404(pk)
+        nok = schema.load(namespace.payload, session=db.session, instance=nok, unknown='exclude')
+        nok.save()
+        return schema.dump(nok), 200
 
     def delete(self, pk):
-        pass
+        nok = NextOfKin.query.get_or_404(pk)
+        return nok.delete(), 200
 
 
 namespace.add_resource(NextOfKinListResource, '/')

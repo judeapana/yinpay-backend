@@ -27,13 +27,18 @@ class UserAttendanceListResource(Resource):
 
 class UserAttendanceResource(Resource):
     def get(self, pk):
-        pass
+        ua = UserAttendance.query.get_or_404(pk)
+        return ua, 200
 
     def put(self, pk):
-        pass
+        ua = UserAttendance.query.get_or_404(pk)
+        ua = schema.load(namespace.payload, session=db.session, instance=ua, unknown='exclude')
+        ua.save()
+        return schema.dump(ua), 200
 
     def delete(self, pk):
-        pass
+        ua = UserAttendance.query.get_or_404(pk)
+        return ua.delete(), 200
 
 
 namespace.add_resource(UserAttendanceListResource, '/')

@@ -1,10 +1,10 @@
 from flask import jsonify, current_app
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, create_refresh_token, current_user, \
     get_jwt
-from flask_restplus import Resource, abort
+from flask_restplus import Resource, abort, fields
 from flask_restplus.reqparse import RequestParser
 
-from yinpay import bcrypt, redis
+from yinpay.ext import bcrypt, redis
 from yinpay.models import User
 from yinpay.resources.security import namespace
 from yinpay.schema import UserSchema
@@ -14,31 +14,35 @@ parser = RequestParser(trim=True, bundle_errors=True)
 parser.add_argument('username', required=True, type=str, location='json')
 parser.add_argument('password', required=True, type=str, location='json')
 
+model = namespace.model('Auth', {
+    'username': fields.String(),
+    'password': fields.String(),
+})
 schema = UserSchema()
 
 
 class Login(Resource):
-    @namespace.expect(parser)
+    @namespace.expect(model)
     def post(self):
         """
         Login users with jwt
         :return:
         """
         res = parser.parse_args(strict=True)
-        user = User.query.filter((User.email_addres == res.username) | (User.username == res.username)).first()
+        user = User.query.filter((User.email_address == res.username) | (User.username == res.username)).first()
         if not user:
             return abort(401)
         else:
-            if not bcrypt.check_password_hash(user.password, res.password):
+            if not bcrypt.check_password_hash(user.password.decode('utf-8'), res.password):
                 return abort(401)
             else:
                 if user.disabled:
                     return abort(401, message='Your account is not active')
                 else:
                     added_claims = schema.dumps(obj=user)
-                    access_token = create_access_token(identity=user.id, additional_claims=added_claims)
-                    refresh_token = create_refresh_token(identity=user.id)
-                    return jsonify(access_token=access_token, refresh_token=refresh_token), 200
+                    access_token = create_access_token(identity=user, additional_claims=added_claims)
+                    refresh_token = create_refresh_token(identity=user)
+                    return jsonify(access_token=access_token, refresh_token=refresh_token)
 
 
 class Refresh(Resource):

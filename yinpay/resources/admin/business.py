@@ -1,7 +1,7 @@
 from flask_restplus import Resource, Namespace, fields
 
+from yinpay.ext import flask_filter, pagination, db
 from yinpay.schema import BusinessSchema
-from ... import flask_filter, pagination, db
 from ...models import Business
 
 namespace = Namespace('business', description='', path='/business')
@@ -13,8 +13,9 @@ model = namespace.model('Business', {
     'address': fields.String(),
     'support_email': fields.String(),
     'phone_number': fields.String(),
-    'btype': fields.String(default='Nonprofit Organization'),
-    'description': fields.String()
+    'btype': fields.String(),
+    'description': fields.String(),
+    # 'setting':fields.Nested()
 })
 
 
@@ -31,6 +32,7 @@ class BusinessListResource(Resource):
         business = Business()
         business = schema.load(namespace.payload, session=db.session, instance=business, unknown='exclude')
         business.save()
+
         return schema.dump(business), 200
 
 

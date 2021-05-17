@@ -27,13 +27,18 @@ class SocialSrListResource(Resource):
 
 class SocialSrResource(Resource):
     def get(self, pk):
-        pass
+        ssr = SocialSecurityRate.query.get_or_404(pk)
+        return ssr, 200
 
     def put(self, pk):
-        pass
+        ssr = SocialSecurityRate.query.get_or_404(pk)
+        ssr = schema.load(namespace.payload, session=db.session, instance=ssr, unknown='exclude')
+        ssr.save()
+        return schema.dump(ssr), 200
 
     def delete(self, pk):
-        pass
+        ssr = SocialSecurityRate.query.get_or_404(pk)
+        return ssr.delete(), 200
 
 
 namespace.add_resource(SocialSrListResource, '/')

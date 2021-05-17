@@ -19,7 +19,7 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
     username = fields.String(required=True, validate=[username])
     phone_number = fields.String(required=True, validate=tel)
     email_address = fields.Email(required=True)
-    password = fields.String(load_only=True, validate=password)
+    password = fields.String(load_only=True, dump_only=False, validate=password)
     first_name = fields.String(required=True)
     last_name = fields.String(required=True)
     business = fields.Nested('BusinessSchema', many=True)
@@ -450,3 +450,19 @@ class SettingSchema(ma.SQLAlchemyAutoSchema):
         load_instance = True
 
     business = fields.Nested(BusinessSchema)
+
+
+class EmailAddressSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = User
+        only = ('email_address',)
+
+    email_address = fields.Email(required=True)
+
+
+class PasswordSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = User
+        only = ('password',)
+
+    password = fields.String(required=True, validate=password)

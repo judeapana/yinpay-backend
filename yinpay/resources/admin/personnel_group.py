@@ -1,6 +1,6 @@
 from flask_restplus import Resource, Namespace
 
-from yinpay import flask_filter, pagination, db
+from yinpay.ext import flask_filter, pagination, db
 from yinpay.models import PersonnelGroup
 from yinpay.schema import PersonnelGroupSchema
 
@@ -27,13 +27,18 @@ class PersonnelGroupListResource(Resource):
 
 class PersonnelGroupResource(Resource):
     def get(self, pk):
-        pass
+        pg = PersonnelGroup.query.get_or_404(pk)
+        return pg, 200
 
     def put(self, pk):
-        pass
+        pg = PersonnelGroup.query.get_or_404(pk)
+        pg = schema.load(namespace.payload, session=db.session, instance=pg, unknown='exclude')
+        pg.save()
+        return schema.dump(pg), 200
 
     def delete(self, pk):
-        pass
+        pg = PersonnelGroup.query.get_or_404(pk)
+        return pg.delete(), 200
 
 
 namespace.add_resource(PersonnelGroupListResource, '/')

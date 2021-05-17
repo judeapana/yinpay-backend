@@ -1,6 +1,6 @@
 from flask_restplus import Resource, Namespace
 
-from yinpay import flask_filter, pagination
+from yinpay import flask_filter, pagination, db
 from yinpay.models import UserDoc
 from yinpay.schema import UserDocSchema
 
@@ -25,13 +25,18 @@ class UserDocListResource(Resource):
 
 class UserDocResource(Resource):
     def get(self, pk):
-        pass
+        user_doc = UserDoc.query.get_or_404(pk)
+        return user_doc, 200
 
     def put(self, pk):
-        pass
+        user_doc = UserDoc.query.get_or_404(pk)
+        user_doc = schema.load(namespace.payload, session=db.session, instance=user_doc, unknown='exclude')
+        user_doc.save()
+        return schema.dump(user_doc), 200
 
     def delete(self, pk):
-        pass
+        user_doc = UserDoc.query.get_or_404(pk)
+        return user_doc.delete(), 200
 
 
 namespace.add_resource(UserDocListResource, '/')

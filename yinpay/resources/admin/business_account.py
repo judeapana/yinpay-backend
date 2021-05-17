@@ -1,6 +1,6 @@
 from flask_restplus import Resource, Namespace
 
-from yinpay import flask_filter, pagination, db
+from yinpay.ext import flask_filter, pagination, db
 from yinpay.models import BusinessAccount
 from yinpay.schema import BusinessAccountSchema
 
@@ -27,13 +27,18 @@ class BusinessAccountListResource(Resource):
 
 class BusinessAccountResource(Resource):
     def get(self, pk):
-        pass
+        ba = BusinessAccount.query.get_or_404(pk)
+        return ba, 200
 
     def put(self, pk):
-        pass
+        ba = BusinessAccount.query.get_or_404(pk)
+        ba = schema.load(namespace.payload, session=db.session, instance=ba, unknown='exclude')
+        ba.save()
+        return schema.dump(ba), 200
 
     def delete(self, pk):
-        pass
+        ba = BusinessAccount.query.get_or_404(pk)
+        return ba.delete(), 200
 
 
 namespace.add_resource(BusinessAccountListResource, '/')

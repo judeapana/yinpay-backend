@@ -26,13 +26,18 @@ class UserEarningListResource(Resource):
 
 class UserEarningResource(Resource):
     def get(self, pk):
-        pass
+        user_earning = UserEarning.query.get_or_404(pk)
+        return user_earning, 200
 
     def put(self, pk):
-        pass
+        user_earning = UserEarning.query.get_or_404(pk)
+        user_earning = schema.load(namespace.payload, session=db.session, instance=user_earning, unknown='exclude')
+        user_earning.save()
+        return schema.dump(user_earning), 200
 
     def delete(self, pk):
-        pass
+        user_earning = UserEarning.query.get_or_404(pk)
+        return user_earning.delete(), 200
 
 
 namespace.add_resource(UserEarningListResource, '/')

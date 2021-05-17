@@ -1,14 +1,23 @@
 from flask_restplus import Resource, Namespace
 
-namespace = Namespace('setting', path='/settings')
+from yinpay.ext import db
+from yinpay.models import Setting
+from yinpay.schema import SettingSchema
+
+namespace = Namespace('setting', path='/setting')
+schema = SettingSchema()
 
 
 class SettingResource(Resource):
-    def post(self):
-        pass
+    def get(self):
+        setting = Setting.query.get_or_404()
+        return setting, 200
 
-    def put(self):
-        pass
+    def put(self, pk):
+        setting = Setting.query.get_or_404(pk)
+        setting = schema.load(namespace.payload, session=db.session, instance=setting, unknown='exclude')
+        setting.save()
+        return schema.dump(setting), 200
 
 
 namespace.add_resource(SettingResource, '/setting')

@@ -26,13 +26,18 @@ class UserLeaveListResource(Resource):
 
 class UserLeaveResource(Resource):
     def get(self, pk):
-        pass
+        user_leave = UserLeave.query.get_or_404(pk)
+        return user_leave, 200
 
-    def post(self, pk):
-        pass
+    def put(self, pk):
+        user_leave = UserLeave.query.get_or_404(pk)
+        user_leave = schema.load(namespace.payload, session=db.session, instance=user_leave, unknown='exclude')
+        user_leave.save()
+        return schema.dump(user_leave), 200
 
     def delete(self, pk):
-        pass
+        user_leave = UserLeave.query.get_or_404(pk)
+        return user_leave.delete(), 200
 
 
 namespace.add_resource(UserLeaveListResource, '/')

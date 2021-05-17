@@ -1,6 +1,6 @@
 from flask_restplus import Resource, Namespace
 
-from yinpay import flask_filter, pagination
+from yinpay.ext import flask_filter, pagination, db
 from yinpay.models import Queue
 from yinpay.schema import QueueSchema
 
@@ -19,13 +19,18 @@ class QueueListResource(Resource):
 
 class QueueResource(Resource):
     def get(self, pk):
-        pass
+        queue = Queue.query.get_or_404(pk)
+        return queue, 200
 
     def put(self, pk):
-        pass
+        queue = Queue.query.get_or_404(pk)
+        queue = schema.load(namespace.payload, session=db.session, instance=queue, unknown='exclude')
+        queue.save()
+        return schema.dump(queue), 200
 
     def delete(self, pk):
-        pass
+        queue = Queue.query.get_or_404(pk)
+        return queue.delete(), 200
 
 
 namespace.add_resource(QueueListResource, '/')

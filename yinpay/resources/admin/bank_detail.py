@@ -1,6 +1,6 @@
 from flask_restplus import Resource, Namespace
 
-from yinpay import flask_filter, pagination, db
+from yinpay.ext import flask_filter, pagination, db
 from yinpay.models import BankDetail
 from yinpay.schema import BankDetailSchema
 

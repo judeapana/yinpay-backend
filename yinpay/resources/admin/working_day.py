@@ -26,13 +26,18 @@ class WorkingDayResource(Resource):
 
 class WorkingDayResourceList(Resource):
     def get(self, pk):
-        pass
+        wd = WorkingDay.query.get_or_404(pk)
+        return wd, 200
 
-    def post(self, pk):
-        pass
+    def put(self, pk):
+        wd = WorkingDay.query.get_or_404(pk)
+        wd = schema.load(namespace.payload, session=db.session, instance=wd, unknown='exclude')
+        wd.save()
+        return schema.dump(wd), 200
 
     def delete(self, pk):
-        pass
+        wd = WorkingDay.query.get_or_404(pk)
+        return wd.delete(), 200
 
 
 namespace.add_resource(WorkingDayResource, '/')

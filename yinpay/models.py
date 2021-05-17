@@ -10,7 +10,7 @@ from yinpay.ext import db, bcrypt
 class User(db.Model, Record):
     id = db.Column(db.String(100), primary_key=True, nullable=False, unique=True, default=lambda: str(uuid4()))
     username = db.Column(db.String(50), nullable=False, unique=True)
-    password = db.Column(db.String(255), nullable=False)
+    password = db.Column(db.String(255), nullable=True)
     first_name = db.Column(db.String(50), nullable=True)
     last_name = db.Column(db.String(50), nullable=True)
     email_address = db.Column(db.String(50), nullable=False, unique=True)

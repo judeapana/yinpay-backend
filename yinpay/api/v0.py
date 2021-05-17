@@ -10,7 +10,21 @@ from yinpay.resources.security import namespace as auth
 
 yinapi = Blueprint('api', __name__)
 
-api = Api(yinapi, title='YinPay API', )
+# authorizations = {
+#     'Basic Auth': {
+#         'type': 'basic',
+#         'in': 'header',
+#         'name': 'Authorization'
+#     },
+# }
+authorizations = {
+    'apikey': {
+        'type': 'apiKey',
+        'in': 'header',
+        'name': 'Authorization'
+    }
+}
+api = Api(yinapi, title='YinPay API', authorizations=authorizations, security='apiKey')
 
 api.add_namespace(auth, '/auth')
 api.add_namespace(attendance)

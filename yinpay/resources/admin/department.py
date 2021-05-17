@@ -1,6 +1,6 @@
 from flask_restplus import Resource, Namespace
 
-from yinpay import flask_filter, pagination, db
+from yinpay.ext import flask_filter, pagination, db
 from yinpay.models import Department
 from yinpay.schema import DepartmentSchema
 
@@ -18,21 +18,26 @@ class DepartmentListResource(Resource):
         return pagination.paginate(search, schema, marshmallow=True)
 
     def post(self):
-        dg = Department()
-        dg = schema.load(namespace.payload, session=db.session, instance=dg, unknown='exclude')
-        dg.save()
-        return schema.dump(dg), 200
+        dp = Department()
+        dp = schema.load(namespace.payload, session=db.session, instance=dp, unknown='exclude')
+        dp.save()
+        return schema.dump(dp), 200
 
 
 class DepartmentResource(Resource):
     def get(self, pk):
-        pass
+        dp = Department.query.get_or_404(pk)
+        return dp, 200
 
     def put(self, pk):
-        pass
+        dp = Department.query.get_or_404(pk)
+        dp = schema.load(namespace.payload, session=db.session, instance=dp, unknown='exclude')
+        dp.save()
+        return schema.dump(dp), 200
 
     def delete(self, pk):
-        pass
+        dp = Department.query.get_or_404(pk)
+        return dp.delete(), 200
 
 
 namespace.add_resource(DepartmentListResource, '/')

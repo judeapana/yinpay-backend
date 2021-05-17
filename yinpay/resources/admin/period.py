@@ -1,6 +1,6 @@
 from flask_restplus import Resource, Namespace
 
-from yinpay import flask_filter, pagination, db
+from yinpay.ext import flask_filter, pagination, db
 from yinpay.models import Period
 from yinpay.schema import PeriodSchema
 
@@ -26,13 +26,18 @@ class PeriodListResource(Resource):
 
 class PeriodResource(Resource):
     def get(self, pk):
-        pass
+        period = Period.query.get_or_404(pk)
+        return period, 200
 
     def put(self, pk):
-        pass
+        period = Period.query.get_or_404(pk)
+        period = schema.load(namespace.payload, session=db.session, instance=period, unknown='exclude')
+        period.save()
+        return schema.dump(period), 200
 
     def delete(self, pk):
-        pass
+        period = Period.query.get_or_404(pk)
+        return period.delete(), 200
 
 
 namespace.add_resource(PeriodListResource, '/')

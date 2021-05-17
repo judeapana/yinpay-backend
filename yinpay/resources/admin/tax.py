@@ -25,13 +25,18 @@ class TaxListResource(Resource):
 
 class TaxResource(Resource):
     def get(self, pk):
-        pass
+        tax = Tax.query.get_or_404(pk)
+        return tax, 200
 
     def put(self, pk):
-        pass
+        tax = Tax.query.get_or_404(pk)
+        tax = schema.load(namespace.payload, session=db.session, instance=tax, unknown='exclude')
+        tax.save()
+        return schema.dump(tax), 200
 
     def delete(self, pk):
-        pass
+        tax = Tax.query.get_or_404(pk)
+        return tax.delete(), 200
 
 
 namespace.add_resource(TaxListResource, '/')

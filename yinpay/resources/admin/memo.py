@@ -1,6 +1,6 @@
 from flask_restplus import Resource, Namespace
 
-from yinpay import flask_filter, pagination, db
+from yinpay.ext import flask_filter, pagination, db
 from yinpay.models import Memo
 from yinpay.schema import MemoSchema
 
@@ -26,13 +26,18 @@ class MemoListResource(Resource):
 
 class MemoResource(Resource):
     def get(self, pk):
-        pass
+        memo = Memo.query.get_or_404(pk)
+        return memo, 200
 
     def put(self, pk):
-        pass
+        memo = Memo.query.get_or_404(pk)
+        memo = schema.load(namespace.payload, session=db.session, instance=memo, unknown='exclude')
+        memo.save()
+        return schema.dump(memo), 200
 
     def delete(self, pk):
-        pass
+        memo = Memo.query.get_or_404(pk)
+        return memo.delete(), 200
 
 
 namespace.add_resource(MemoListResource, '/')

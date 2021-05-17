@@ -1,6 +1,6 @@
 from flask_restplus import Resource, Namespace
 
-from yinpay import flask_filter, pagination, db
+from yinpay.ext import flask_filter, pagination, db
 from yinpay.models import DailyRate
 from yinpay.schema import DailyRateSchema
 
@@ -25,13 +25,18 @@ class DailyRateListResource(Resource):
 
 class DailyRateResource(Resource):
     def get(self, pk):
-        pass
+        dr = DailyRate.query.get_or_404(pk)
+        return dr, 200
 
     def put(self, pk):
-        pass
+        dr = DailyRate.query.get_or_404(pk)
+        dr = schema.load(namespace.payload, session=db.session, instance=dr, unknown='exclude')
+        dr.save()
+        return schema.dump(dr), 200
 
     def delete(self, pk):
-        pass
+        dr = DailyRate.query.get_or_404(pk)
+        return dr.delete(), 200
 
 
 namespace.add_resource(DailyRateListResource, '/')

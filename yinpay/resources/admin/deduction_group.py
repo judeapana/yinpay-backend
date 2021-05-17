@@ -1,6 +1,6 @@
 from flask_restplus import Resource, Namespace
 
-from yinpay import flask_filter, pagination, db
+from yinpay.ext import flask_filter, pagination, db
 from yinpay.models import DeductionGroup
 from yinpay.schema import DeductionGroupSchema
 
@@ -27,13 +27,18 @@ class DeductionGroupListResource(Resource):
 
 class DeductionGroupResource(Resource):
     def get(self, pk):
-        pass
+        dg = DeductionGroup.query.get_or_404(pk)
+        return dg, 200
 
     def put(self, pk):
-        pass
+        dg = DeductionGroup.query.get_or_404(pk)
+        dg = schema.load(namespace.payload, session=db.session, instance=dg, unknown='exclude')
+        dg.save()
+        return schema.dump(dg), 200
 
     def delete(self, pk):
-        pass
+        dg = DeductionGroup.query.get_or_404(pk)
+        return dg.delete(), 200
 
 
 namespace.add_resource(DeductionGroupListResource, '/')

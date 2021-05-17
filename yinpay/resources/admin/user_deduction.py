@@ -27,13 +27,18 @@ class UserDeductionListResource(Resource):
 
 class UserDeductionResource(Resource):
     def get(self, pk):
-        pass
+        ug = UserDeduction.query.get_or_404(pk)
+        return ug, 200
 
     def put(self, pk):
-        pass
+        ug = UserDeduction.query.get_or_404(pk)
+        ug = schema.load(namespace.payload, session=db.session, instance=ug, unknown='exclude')
+        ug.save()
+        return schema.dump(ug), 200
 
     def delete(self, pk):
-        pass
+        ug = UserDeduction.query.get_or_404(pk)
+        return ug.delete(), 200
 
 
 namespace.add_resource(UserDeductionListResource, '/')
