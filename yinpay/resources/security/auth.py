@@ -33,15 +33,16 @@ class Login(Resource):
         if not user:
             return abort(401)
         else:
-            if not bcrypt.check_password_hash(user.password.decode('utf-8'), res.password):
+            if not bcrypt.check_password_hash(user.password, res.password):
                 return abort(401)
             else:
                 if user.disabled:
-                    return abort(401, message='Your account is not active')
+                    return abort(401,
+                                 message='Your account is not active, to activate it request account activation link')
                 else:
-                    added_claims = schema.dumps(obj=user)
+                    added_claims = schema.dump(obj=user)
                     access_token = create_access_token(identity=user, additional_claims=added_claims)
-                    refresh_token = create_refresh_token(identity=user)
+                    refresh_token = create_refresh_token(identity=user, additional_claims=added_claims)
                     return jsonify(access_token=access_token, refresh_token=refresh_token)
 
 

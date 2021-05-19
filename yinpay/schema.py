@@ -14,7 +14,6 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
         model = User
         include_fk = True
         load_instance = True
-        # include_relationship=True
 
     username = fields.String(required=True, validate=[username])
     phone_number = fields.String(required=True, validate=tel)
@@ -419,7 +418,17 @@ class UserDeductionSchema(ma.SQLAlchemyAutoSchema):
 
     @validates_schema
     def validate_deduction_group(self, data, **kwargs):
-        pass
+        errors = {}
+        user_meta = UserMeta.query.get_or_404(data.get('user_meta_id'))
+        if request.method == 'POST':
+            if user_meta.user_deductions.filter(UserEarning.id == data.get('deduction_group_id')).first():
+                errors['deduction_group'] = ['This deduction is already applied to this user']
+        if request.method == 'PUT':
+
+            if user_meta.user_deductions.filter(UserEarning.id != data.get('deduction_group_id'), ).first():
+                errors['deduction_group'] = ['This deduction is already applied to this user']
+        if errors:
+            raise ValidationError(errors)
 
 
 class UserEarningSchema(ma.SQLAlchemyAutoSchema):
@@ -432,8 +441,18 @@ class UserEarningSchema(ma.SQLAlchemyAutoSchema):
     earning_group = fields.Nested(EarningGroupSchema)
 
     @validates('earning_group')
-    def validate_earning_group(self):
-        pass
+    def validate_earning_group(self, data, **kwargs):
+        errors = {}
+        user_meta = UserMeta.query.get_or_404(data.get('user_meta_id'))
+        if request.method == 'POST':
+            if user_meta.user_earnings.filter(UserEarning.id == data.get('deduction_group_id')).first():
+                errors['earning_group'] = ['This earning is already applied to this user']
+        if request.method == 'PUT':
+
+            if user_meta.user_earnings.filter(UserEarning.id != data.get('deduction_group_id'), ).first():
+                errors['earning_group'] = ['This earning is already applied to this user']
+        if errors:
+            raise ValidationError(errors)
 
 
 class QueueSchema(ma.SQLAlchemyAutoSchema):

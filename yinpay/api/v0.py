@@ -24,7 +24,7 @@ authorizations = {
         'name': 'Authorization'
     }
 }
-api = Api(yinapi, title='YinPay API', authorizations=authorizations, security='apiKey')
+api = Api(yinapi, title='YinPay API', authorizations=authorizations, security='apikey')
 
 api.add_namespace(auth, '/auth')
 api.add_namespace(attendance)

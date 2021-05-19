@@ -17,7 +17,6 @@ class Instance:
     RQ_QUEUES = ['yin_pay_default']
     SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root@localhost/yin_pay'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    JWT_TOKEN_LOCATION = ['headers']
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)
 
     PAGINATE_PAGE_SIZE = 20

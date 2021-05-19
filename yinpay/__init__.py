@@ -29,7 +29,7 @@ def create_app():
     @jwt.user_lookup_loader
     def user_lookup(jwt_header, jwt_data):
         identity = jwt_data['sub']
-        return User.query.filter_by(User.id == identity).one_or_none()
+        return User.query.filter_by(id=identity).one_or_none()
 
     @jwt.token_in_blocklist_loader
     def blacklist_token(jwt_header, jwt_data):

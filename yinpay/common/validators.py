@@ -5,8 +5,8 @@ from marshmallow import ValidationError
 
 def tel(value):
     if re.fullmatch(r'^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$', value):
-        raise ValidationError(f'{value} is not a valid tel must be 10 characters')
-    return value
+        return value
+    raise ValidationError(f'{value} is not a valid tel must be 10 characters')
 
 
 def password(value):

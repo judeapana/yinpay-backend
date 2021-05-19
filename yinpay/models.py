@@ -169,6 +169,11 @@ class UserMeta(db.Model, Record):
     attendances = db.relationship('UserAttendance', backref=db.backref('user_meta'), cascade='all,delete,delete-orphan',
                                   lazy='dynamic')
 
+    user_deductions = db.relationship('UserDeduction', backref=db.backref('user_meta'), cascade='all,delete',
+                                      lazy=True)
+    user_earnings = db.relationship('UserEarning', backref=db.backref('user_meta'), cascade='all,delete',
+                                    lazy=True)
+
 
 class NextOfKin(db.Model, Record):
     id = db.Column(db.String(100), primary_key=True, nullable=False, unique=True, default=lambda: str(uuid4()))
@@ -353,7 +358,8 @@ class Attendance(db.Model, Record):
     user_attendances = db.relationship('UserAttendance', backref=db.backref('attendance'),
                                        cascade='all,delete,delete-orphan',
                                        lazy='dynamic')
-    # we track the attendance day and relate it to the current day and allow yours to enter their attendance when they login
+    # we track the attendance day and relate it to the
+    # current day and allow yours to enter their attendance when they login
 
 
 class UserAttendance(db.Model, Record):
