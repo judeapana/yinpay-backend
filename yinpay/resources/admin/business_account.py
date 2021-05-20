@@ -1,10 +1,11 @@
+from flask_jwt_extended import jwt_required
 from flask_restplus import Resource, Namespace
 
 from yinpay.ext import flask_filter, pagination, db
 from yinpay.models import BusinessAccount
 from yinpay.schema import BusinessAccountSchema
 
-namespace = Namespace('BusinessAccount', path='/ba')
+namespace = Namespace('BusinessAccount', path='/ba', description='', decorators=[jwt_required()])
 
 schema = BusinessAccountSchema()
 

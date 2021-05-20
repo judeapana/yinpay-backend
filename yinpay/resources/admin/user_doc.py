@@ -1,10 +1,11 @@
+from flask_jwt_extended import jwt_required
 from flask_restplus import Resource, Namespace
 
 from yinpay import flask_filter, pagination, db
 from yinpay.models import UserDoc
 from yinpay.schema import UserDocSchema
 
-namespace = Namespace('user_doc', path='/user-doc')
+namespace = Namespace('user_doc', path='/user-doc',decorators=[jwt_required()])
 schema = UserDocSchema()
 
 

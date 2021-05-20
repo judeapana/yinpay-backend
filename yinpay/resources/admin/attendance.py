@@ -1,10 +1,11 @@
+from flask_jwt_extended import jwt_required
 from flask_restplus import Resource, Namespace
 
 from yinpay.ext import flask_filter, pagination, db
 from yinpay.models import Attendance
 from yinpay.schema import AttendanceSchema
 
-namespace = Namespace('attendance', description='', path='/attendance')
+namespace = Namespace('attendance', description='', path='/attendance', decorators=[jwt_required()])
 
 schema = AttendanceSchema()
 

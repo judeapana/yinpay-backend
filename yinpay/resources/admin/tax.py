@@ -1,10 +1,11 @@
+from flask_jwt_extended import jwt_required
 from flask_restplus import Resource, Namespace
 
 from yinpay import flask_filter, pagination, db
 from yinpay.models import Tax
 from yinpay.schema import TaxSchema
 
-namespace = Namespace('tax', path='/tax')
+namespace = Namespace('tax', path='/tax',decorators=[jwt_required()])
 schema = TaxSchema()
 
 

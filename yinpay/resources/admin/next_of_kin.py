@@ -1,10 +1,11 @@
+from flask_jwt_extended import jwt_required
 from flask_restplus import Resource, Namespace
 
 from yinpay.ext import flask_filter, pagination, db
 from yinpay.models import NextOfKin
 from yinpay.schema import NextOfKinSchema
 
-namespace = Namespace('next_of_kin', path='/next-of-kin')
+namespace = Namespace('next_of_kin', path='/next-of-kin',decorators=[jwt_required()])
 schema = NextOfKinSchema()
 
 

@@ -1,10 +1,11 @@
+from flask_jwt_extended import jwt_required
 from flask_restplus import Resource, Namespace
 
 from yinpay import flask_filter, pagination, db
 from yinpay.models import SocialSecurityRate
 from yinpay.schema import SocialSecurityRateSchema
 
-namespace = Namespace('ssr', path='/ssr')
+namespace = Namespace('ssr', path='/ssr',decorators=[jwt_required()])
 
 schema = SocialSecurityRateSchema()
 

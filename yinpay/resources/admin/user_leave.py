@@ -1,10 +1,11 @@
+from flask_jwt_extended import jwt_required
 from flask_restplus import Resource, Namespace
 
 from yinpay import flask_filter, pagination, db
 from yinpay.models import UserLeave
 from yinpay.schema import UserLeaveSchema
 
-namespace = Namespace('user_leave', path='/user-leave')
+namespace = Namespace('user_leave', path='/user-leave',decorators=[jwt_required()])
 
 schema = UserLeaveSchema()
 

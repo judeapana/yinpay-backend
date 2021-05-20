@@ -1,10 +1,11 @@
+from flask_jwt_extended import jwt_required
 from flask_restplus import Resource, Namespace
 
 from yinpay import flask_filter, pagination, db
 from yinpay.models import WorkingDay
 from yinpay.schema import WorkingDaySchema
 
-namespace = Namespace('working_days', path='/working-day')
+namespace = Namespace('working_days', path='/working-day', decorators=[jwt_required()])
 
 schema = WorkingDaySchema()
 

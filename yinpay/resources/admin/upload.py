@@ -1,4 +1,5 @@
 import werkzeug
+from flask_jwt_extended import jwt_required
 from flask_restplus import Resource, Namespace
 from flask_restplus.reqparse import RequestParser
 
@@ -7,7 +8,7 @@ from yinpay.common.helpers import img_upload, delete_file, file_upload
 from yinpay.models import Business, UserDoc
 from yinpay.schema import UserSchema, BusinessSchema, UserDocSchema
 
-namespace = Namespace('upload_manager', description='', path='/upload')
+namespace = Namespace('upload_manager', description='', path='/upload',decorators=[jwt_required()])
 
 parser = RequestParser(trim=True, bundle_errors=True)
 parser.add_argument('img', type=werkzeug.datastructures.FileStorage, location='files')

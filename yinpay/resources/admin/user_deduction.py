@@ -1,10 +1,11 @@
+from flask_jwt_extended import jwt_required
 from flask_restplus import Resource, Namespace
 
 from yinpay import flask_filter, pagination, db
 from yinpay.models import UserDeduction
 from yinpay.schema import UserDeductionSchema
 
-namespace = Namespace('user_deduction', path='/user-deduction')
+namespace = Namespace('user_deduction', path='/user-deduction',decorators=[jwt_required()])
 
 schema = UserDeductionSchema()
 

@@ -1,10 +1,11 @@
+from flask_jwt_extended import jwt_required
 from flask_restplus import Resource, Namespace
 
 from yinpay.ext import db
 from yinpay.models import Setting
 from yinpay.schema import SettingSchema
 
-namespace = Namespace('setting', path='/setting')
+namespace = Namespace('setting', path='/setting',decorators=[jwt_required()])
 schema = SettingSchema()
 
 

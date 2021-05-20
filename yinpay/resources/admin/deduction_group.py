@@ -1,10 +1,11 @@
+from flask_jwt_extended import jwt_required
 from flask_restplus import Resource, Namespace
 
 from yinpay.ext import flask_filter, pagination, db
 from yinpay.models import DeductionGroup
 from yinpay.schema import DeductionGroupSchema
 
-namespace = Namespace('deduction_group', path='/deduction-group')
+namespace = Namespace('deduction_group', path='/deduction-group',decorators=[jwt_required()])
 
 schema = DeductionGroupSchema()
 

@@ -1,4 +1,5 @@
 from flask import request
+from flask_jwt_extended import current_user
 from marshmallow import fields, ValidationError, validates, validates_schema
 
 from yinpay import ma
@@ -54,42 +55,15 @@ class BusinessSchema(ma.SQLAlchemyAutoSchema):
         load_instance = True
         include_relationship = True
 
-    # user = fields.Nested(UserSchema, exclude=('business', 'user_meta'))
-    # accounts = fields.Nested('BusinessAccountSchema', many=True)
-    # setting = fields.Nested('SettingSchema', exclude=('business',))
-    # business_accounts = fields.Nested('BusinessAccountSchema', many=True)
-    # personnel_groups = fields.Nested('PersonnelGroupSchema', many=True)
-    # user_metas = fields.Nested('UserMetaSchema', many=True)
-    # next_of_kins = fields.Nested('NextOfKinSchema', many=True)
-    # banks = fields.Nested('BankSchema', many=True)
-    # bank_details = fields.Nested('BankDetailSchema', many=True)
-    # memos = fields.Nested('MemoSchema', many=True)
-    # user_leaves = fields.Nested('UserLeaveSchema', many=True)
-    # user_docs = fields.Nested('UserDocSchema', many=True)
-    # departments = fields.Nested('DepartmentSchema', many=True)
-    # periods = fields.Nested('PeriodSchema', many=True)
-    # working_days = fields.Nested('WorkingDaySchema', many=True)
-    # daily_rates = fields.Nested('DailyRateSchema', many=True)
-    # social_security_rates = fields.Nested('SocialSecurityRateSchema', many=True)
-    # deduction_groups = fields.Nested('DeductionGroupSchema', many=True)
-    # earning_groups = fields.Nested('EarningGroupSchema', many=True)
-    # taxes = fields.Nested('TaxSchema', many=True)
-    # attendances = fields.Nested('AttendanceSchema', many=True)
-    # user_attendances = fields.Nested('UserAttendanceSchema', many=True)
-    # user_deductions = fields.Nested('UserDeductionSchema', many=True)
-    # user_earnings = fields.Nested('UserEarningSchema', many=True)
-    # queues = fields.Nested('QueueSchema', many=True)
-    phone_number = fields.String(required=True, validate=[tel])
-
     @validates_schema
     def validate(self, data, **kwargs):
         errors = {}
-        user = User.query.get_or_404(data.get('user_id'))
         if request.method == 'POST':
-            if user.business.filter_by(name=data.get('name')).first():
+            if current_user.business.filter_by(name=data.get('name')).first():
                 errors['name'] = ['This name is already in use.']
         if request.method == 'PUT':
-            b = user.business.filter(Business.name == data.get('name')).filter(Business.id != get_uuid()).first()
+            b = current_user.business.filter(Business.name == data.get('name')).filter(
+                Business.id != get_uuid()).first()
             if b:
                 errors['name'] = ['This name is already in use.']
         if errors:
@@ -103,6 +77,10 @@ class BusinessAccountSchema(ma.SQLAlchemyAutoSchema):
         load_instance = True
 
     business = fields.Nested(BusinessSchema, exclude=('user', 'accounts'))
+
+    @validates_schema
+    def validate_business_name(self):
+        pass
 
 
 class PersonnelGroupSchema(ma.SQLAlchemyAutoSchema):
@@ -118,9 +96,9 @@ class PersonnelGroupSchema(ma.SQLAlchemyAutoSchema):
     working_days = fields.Nested('WorkingDaySchema', many=True)
 
     @validates_schema
-    def validate(self, data, **kwargs):
+    def validate_business_name(self, data, **kwargs):
         errors = {}
-        business = Business.query.get_or_404(data.get('business_id'))
+        business = current_user.business.filter_by(id=data.get('business_id')).first_or_404()
         if request.method == 'POST':
             if business.personnel_groups.filter_by(name=data.get('name')).first():
                 errors['name'] = ['This name is already in use.']
@@ -169,7 +147,7 @@ class BankSchema(ma.SQLAlchemyAutoSchema):
     @validates_schema
     def validate(self, data, **kwargs):
         errors = {}
-        business = Business.query.get_or_404(data.get('business_id'))
+        business = current_user.business.filter_by(id=data.get('business_id')).first_or_404()
         if request.method == 'POST':
             if business.banks.filter_by(name=data.get('name')).first():
                 errors['name'] = ['This name is already in use.']
@@ -190,6 +168,10 @@ class BankDetailSchema(ma.SQLAlchemyAutoSchema):
 
     bank = fields.Nested(BankSchema)
     user_meta = fields.Nested(UserMetaSchema, exclude=('bank_details',))
+
+    @validates_schema
+    def validate_business_user_meta(self):
+        pass
 
 
 class MemoSchema(ma.SQLAlchemyAutoSchema):
@@ -228,7 +210,7 @@ class DepartmentSchema(ma.SQLAlchemyAutoSchema):
     @validates_schema
     def validate(self, data, **kwargs):
         errors = {}
-        business = Business.query.get_or_404(data.get('business_id'))
+        business = current_user.business.filter_by(id=data.get('business_id')).first_or_404()
         if request.method == 'POST':
             if business.departments.filter_by(name=data.get('name')).first():
                 errors['name'] = ['This name is already in use.']
@@ -254,9 +236,9 @@ class PeriodSchema(ma.SQLAlchemyAutoSchema):
     attendances = fields.Nested('AttendanceSchema', many=True)
 
     @validates_schema
-    def validate(self, data, **kwargs):
+    def validate_business_name(self, data, **kwargs):
         errors = {}
-        business = Business.query.get_or_404(data.get('business_id'))
+        business = current_user.business.filter_by(id=data.get('business_id')).first_or_404()
         if request.method == 'POST':
             if business.periods.filter_by(name=data.get('name')).first():
                 errors['name'] = ['This name is already in use.']
@@ -278,6 +260,10 @@ class WorkingDaySchema(ma.SQLAlchemyAutoSchema):
     period = fields.Nested(PeriodSchema, many=True)
     personnel_group = fields.Nested(PersonnelGroupSchema, many=True)
 
+    @validates_schema
+    def validate_period_personnel_group_business(self):
+        pass
+
 
 class DailyRateSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
@@ -287,6 +273,10 @@ class DailyRateSchema(ma.SQLAlchemyAutoSchema):
 
     user_meta = fields.Nested(UserMetaSchema, exclude=('daily_rates',))
 
+    @validates_schema
+    def validate_period_business_user_meta(self):
+        pass
+
 
 class SocialSecurityRateSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
@@ -295,6 +285,10 @@ class SocialSecurityRateSchema(ma.SQLAlchemyAutoSchema):
         load_instance = True
 
     period = fields.Nested(PeriodSchema)
+
+    @validates_schema
+    def validate_business_period(self):
+        pass
 
 
 class DeductionGroupSchema(ma.SQLAlchemyAutoSchema):
@@ -309,7 +303,7 @@ class DeductionGroupSchema(ma.SQLAlchemyAutoSchema):
     @validates_schema
     def validate(self, data, **kwargs):
         errors = {}
-        business = Business.query.get_or_404(data.get('business_id'))
+        business = current_user.business.filter_by(id=data.get('business_id')).first_or_404()
         if request.method == 'POST':
             if business.deduction_groups.filter_by(name=data.get('name')).first():
                 errors['name'] = ['This name is already in use.']
@@ -334,7 +328,7 @@ class EarningGroupSchema(ma.SQLAlchemyAutoSchema):
     @validates_schema
     def validate(self, data, **kwargs):
         errors = {}
-        business = Business.query.get_or_404(data.get('business_id'))
+        business = current_user.business.filter_by(id=data.get('business_id')).first_or_404()
         if request.method == 'POST':
             if business.earning_groups.filter_by(name=data.get('name')).first():
                 errors['name'] = ['This name is already in use.']
@@ -359,12 +353,14 @@ class TaxSchema(ma.SQLAlchemyAutoSchema):
     @validates_schema()
     def validate(self, data, **kwargs):
         errors = {}
-        business = Business.query.get_or_404(data.get('business_id'))
+        business = current_user.business.filter_by(id=data.get('business_id')).first_or_404()
         if request.method == 'POST':
-            if business.taxes.filter_by(name=data.get('name')).first():
+            if business.taxes.filter_by(name=data.get('name'), period_id=data.get('period_id'),
+                                        personnel_group_id=data.get('personnel_group_id')).first():
                 errors['name'] = ['This name is already in use.']
         if request.method == 'PUT':
-            b = business.taxes.filter(Tax.name == data.get('name')).filter(
+            b = business.taxes.filter(Tax.name == data.get('name'), period_id=data.get('period_id'),
+                                      personnel_group_id=data.get('personnel_group_id')).filter(
                 Tax.id != get_uuid()).first()
             if b:
                 errors['name'] = ['This name is already in use.']
@@ -384,7 +380,7 @@ class AttendanceSchema(ma.SQLAlchemyAutoSchema):
     @validates_schema
     def validate(self, data, **kwargs):
         errors = {}
-        business = Business.query.get_or_404(data.get('business_id'))
+        business = current_user.business.filter_by(id=data.get('business_id')).first_or_404()
         if request.method == 'POST':
             if business.attendances.filter_by(name=data.get('name')).first():
                 errors['name'] = ['This name is already in use.']
@@ -406,6 +402,9 @@ class UserAttendanceSchema(ma.SQLAlchemyAutoSchema):
     user_meta = fields.Nested(UserMetaSchema)
     attendance = fields.Nested(AttendanceSchema)
 
+    @validates_schema
+    def validate_user_meta_attendance(self): pass
+
 
 class UserDeductionSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
@@ -419,7 +418,8 @@ class UserDeductionSchema(ma.SQLAlchemyAutoSchema):
     @validates_schema
     def validate_deduction_group(self, data, **kwargs):
         errors = {}
-        user_meta = UserMeta.query.get_or_404(data.get('user_meta_id'))
+        business = current_user.business.filter_by(id=data.get('business_id')).first_or_404()
+        user_meta = business.user_metas.filter_by(id=data.get('user_meta_id')).first_or_404()
         if request.method == 'POST':
             if user_meta.user_deductions.filter(UserEarning.id == data.get('deduction_group_id')).first():
                 errors['deduction_group'] = ['This deduction is already applied to this user']
@@ -443,7 +443,8 @@ class UserEarningSchema(ma.SQLAlchemyAutoSchema):
     @validates('earning_group')
     def validate_earning_group(self, data, **kwargs):
         errors = {}
-        user_meta = UserMeta.query.get_or_404(data.get('user_meta_id'))
+        business = current_user.business.filter_by(id=data.get('business_id')).first_or_404()
+        user_meta = business.user_metas.filter_by(id=data.get('user_meta_id')).first_or_404()
         if request.method == 'POST':
             if user_meta.user_earnings.filter(UserEarning.id == data.get('deduction_group_id')).first():
                 errors['earning_group'] = ['This earning is already applied to this user']

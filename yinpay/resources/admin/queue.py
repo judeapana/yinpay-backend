@@ -1,10 +1,11 @@
+from flask_jwt_extended import jwt_required
 from flask_restplus import Resource, Namespace
 
 from yinpay.ext import flask_filter, pagination, db
 from yinpay.models import Queue
 from yinpay.schema import QueueSchema
 
-namespace = Namespace('queue', path='/queue')
+namespace = Namespace('queue', path='/queue',decorators=[jwt_required()])
 schema = QueueSchema()
 
 

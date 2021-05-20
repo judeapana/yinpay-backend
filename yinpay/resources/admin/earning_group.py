@@ -1,10 +1,11 @@
+from flask_jwt_extended import jwt_required
 from flask_restplus import Resource, Namespace
 
 from yinpay.ext import flask_filter, pagination, db
 from yinpay.models import EarningGroup
 from yinpay.schema import EarningGroupSchema
 
-namespace = Namespace('earning_group', path='/earning-group')
+namespace = Namespace('earning_group', path='/earning-group',decorators=[jwt_required()])
 schema = EarningGroupSchema()
 
 

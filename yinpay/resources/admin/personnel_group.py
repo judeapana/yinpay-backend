@@ -1,10 +1,11 @@
+from flask_jwt_extended import jwt_required
 from flask_restplus import Resource, Namespace
 
 from yinpay.ext import flask_filter, pagination, db
 from yinpay.models import PersonnelGroup
 from yinpay.schema import PersonnelGroupSchema
 
-namespace = Namespace('PersoneelGroup', path='/personnel-group')
+namespace = Namespace('PersoneelGroup', path='/personnel-group',decorators=[jwt_required()])
 
 schema = PersonnelGroupSchema()
 

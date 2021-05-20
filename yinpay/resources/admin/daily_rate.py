@@ -1,10 +1,11 @@
+from flask_jwt_extended import jwt_required
 from flask_restplus import Resource, Namespace
 
 from yinpay.ext import flask_filter, pagination, db
 from yinpay.models import DailyRate
 from yinpay.schema import DailyRateSchema
 
-namespace = Namespace('DailyRate', path='/daily-rate')
+namespace = Namespace('DailyRate', path='/daily-rate',decorators=[jwt_required()])
 schema = DailyRateSchema()
 
 
