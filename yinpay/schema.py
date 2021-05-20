@@ -79,8 +79,19 @@ class BusinessAccountSchema(ma.SQLAlchemyAutoSchema):
     business = fields.Nested(BusinessSchema, exclude=('user', 'accounts'))
 
     @validates_schema
-    def validate_business_name(self):
-        pass
+    def validate_business_name(self, data, **kwargs):
+        errors = {}
+        business = current_user.business.filter_by(id=data.get('business_id')).first_or_404()
+        if request.method == 'POST':
+            if business.business_accounts.filter_by(name=data.get('name')).first():
+                errors['name'] = ['This name is already in use.']
+        if request.method == 'PUT':
+            b = business.business_accounts.filter(BusinessAccount.name == data.get('name')).filter(
+                BusinessAccount.id != get_uuid()).first()
+            if b:
+                errors['name'] = ['This name is already in use.']
+        if errors:
+            raise ValidationError(errors)
 
 
 class PersonnelGroupSchema(ma.SQLAlchemyAutoSchema):
@@ -170,8 +181,21 @@ class BankDetailSchema(ma.SQLAlchemyAutoSchema):
     user_meta = fields.Nested(UserMetaSchema, exclude=('bank_details',))
 
     @validates_schema
-    def validate_business_user_meta(self):
-        pass
+    def validate_business_user_meta(self, data, **kwargs):
+        errors = {}
+        business = current_user.business.filter_by(id=data.get('business_id')).first_or_404()
+        if request.method == 'POST':
+            if business.bank_details.filter_by(user_meta_id=data.get('user_meta_id'),
+                                               bank_id=data.get('bank_id'), disabled=False).first():
+                errors['user_meta'] = ['This user can\'t have more than one active account']
+        if request.method == 'PUT':
+            b = business.bank_details.filter(BankDetail.user_meta_id == data.get('user_meta_id'),
+                                             bank_id=data.get('bank_id')).filter(
+                BankDetail.id != get_uuid(), disabled=False).first()
+            if b:
+                errors['user_meta'] = ['This user can\'t have more than one active account']
+        if errors:
+            raise ValidationError(errors)
 
 
 class MemoSchema(ma.SQLAlchemyAutoSchema):
@@ -261,8 +285,21 @@ class WorkingDaySchema(ma.SQLAlchemyAutoSchema):
     personnel_group = fields.Nested(PersonnelGroupSchema, many=True)
 
     @validates_schema
-    def validate_period_personnel_group_business(self):
-        pass
+    def validate_period_personnel_group_business(self, data, **kwargs):
+        errors = {}
+        business = current_user.business.filter_by(id=data.get('business_id')).first_or_404()
+        if request.method == 'POST':
+            if business.working_days.filter_by(period_id=data.get('period_id'),
+                                               personnel_group_id=data.get('personnel_group_id')).first():
+                errors['personnel_group'] = ['Working days already exists for this personnel group']
+        if request.method == 'PUT':
+            b = business.working_days.filter(WorkingDay.period_id == data.get('period_id'),
+                                             personnel_group_id=data.get('personnel_group_id')).filter(
+                WorkingDay.id != get_uuid()).first()
+            if b:
+                errors['personnel_group'] = ['Working days already exists for this personnel group']
+        if errors:
+            raise ValidationError(errors)
 
 
 class DailyRateSchema(ma.SQLAlchemyAutoSchema):
@@ -274,8 +311,20 @@ class DailyRateSchema(ma.SQLAlchemyAutoSchema):
     user_meta = fields.Nested(UserMetaSchema, exclude=('daily_rates',))
 
     @validates_schema
-    def validate_period_business_user_meta(self):
-        pass
+    def validate_period_business_user_meta(self, data, **kwargs):
+        errors = {}
+        business = current_user.business.filter_by(id=data.get('business_id')).first_or_404()
+        if request.method == 'POST':
+            if business.daily_rates.filter_by(period_id=data.get('period_id'),
+                                              user_meta_id=data.get('user_meta_id')).first():
+                errors['period'] = ['This daily rate already exists for this user']
+        if request.method == 'PUT':
+            b = business.daily_rates.filter(DailyRate.period_id == data.get('period_id')).filter(
+                DailyRate.id != get_uuid()).first()
+            if b:
+                errors['period'] = ['This daily rate already exists for this user']
+        if errors:
+            raise ValidationError(errors)
 
 
 class SocialSecurityRateSchema(ma.SQLAlchemyAutoSchema):
@@ -287,8 +336,19 @@ class SocialSecurityRateSchema(ma.SQLAlchemyAutoSchema):
     period = fields.Nested(PeriodSchema)
 
     @validates_schema
-    def validate_business_period(self):
-        pass
+    def validate_business_period(self, data, **kwargs):
+        errors = {}
+        business = current_user.business.filter_by(id=data.get('business_id')).first_or_404()
+        if request.method == 'POST':
+            if business.social_security_rates.filter_by(period_id=data.get('period_id')).first():
+                errors['period'] = ['This period already has a valid social security rate']
+        if request.method == 'PUT':
+            b = business.social_security_rates.filter(SocialSecurityRate.period_id == data.get('period_id')).filter(
+                SocialSecurityRate.id != get_uuid()).first()
+            if b:
+                errors['period'] = ['This period already has a valid social security rate']
+        if errors:
+            raise ValidationError(errors)
 
 
 class DeductionGroupSchema(ma.SQLAlchemyAutoSchema):
@@ -403,7 +463,20 @@ class UserAttendanceSchema(ma.SQLAlchemyAutoSchema):
     attendance = fields.Nested(AttendanceSchema)
 
     @validates_schema
-    def validate_user_meta_attendance(self): pass
+    def validate_user_meta_attendance(self, data, **kwargs):
+        errors = {}
+        business = current_user.business.filter_by(id=data.get('business_id')).first_or_404()
+        if request.method == 'POST':
+            if business.user_attendances.filter(UserAttendance.attendance_id == data.get('attendance_id'),
+                                                UserAttendance.user_meta_id == data.get('user_meta_id')).first():
+                errors['attendance'] = ['This attendance already exist for this user']
+        if request.method == 'PUT':
+            if business.user_attendances.filter(UserAttendance.id != get_uuid(),
+                                                UserAttendance.attendance_id == data.get('attendance_id'),
+                                                UserAttendance.user_meta_id == data.get('user_meta_id')).first():
+                errors['attendance'] = ['This attendance already exist for this user']
+        if errors:
+            raise ValidationError(errors)
 
 
 class UserDeductionSchema(ma.SQLAlchemyAutoSchema):

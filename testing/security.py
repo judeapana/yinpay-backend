@@ -1,7 +1,6 @@
 import unittest
 
 import flask_unittest
-from marshmallow import pprint
 
 from yinpay import create_app
 
@@ -15,8 +14,17 @@ class MyTestCase(flask_unittest.ClientTestCase):
     def tearDown(self, client):
         pass
 
-    def test_register(self, client):
-        pprint(client.post('/auth/register'))
+    def test_register(self, client): pass
+
+    def test_login(self, client): pass
+
+    def test_refresh(self, client): pass
+
+    def test_logout(self, client): pass
+
+    def test_activate_account(self, client): pass
+
+    def change_email_address(self, client): pass
 
 
 if __name__ == '__main__':
