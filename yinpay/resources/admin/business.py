@@ -3,9 +3,12 @@ from flask_restplus import Resource, Namespace, fields
 
 from yinpay.ext import flask_filter, pagination, db
 from yinpay.schema import BusinessSchema
+from ...common.helpers import super_user_required
 from ...models import Business
 
-namespace = Namespace('business', description='', path='/business', decorators=[jwt_required()])
+namespace = Namespace('business', description='Super users will be able to create new business accounts',
+                      path='/business',
+                      decorators=[super_user_required(), jwt_required(), ])
 schema = BusinessSchema()
 
 model = namespace.model('Business', {
@@ -42,8 +45,9 @@ class BusinessListResource(Resource):
 class BusinessResource(Resource):
     def get(self, pk):
         business = current_user.business.filter(Business.id == pk).first_or_404()
-        return business, 200
+        return schema.dump(business), 200
 
+    @namespace.expect(model)
     def put(self, pk):
         business = current_user.business.filter(Business.id == pk).first_or_404()
         business = schema.load(namespace.payload, session=db.session, instance=business, unknown='exclude')

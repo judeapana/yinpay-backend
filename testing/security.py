@@ -5,7 +5,7 @@ import flask_unittest
 from yinpay import create_app
 
 
-class MyTestCase(flask_unittest.ClientTestCase):
+class SecurityCase(flask_unittest.ClientTestCase):
     app = create_app()
 
     def setUp(self, client):

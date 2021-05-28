@@ -1,3 +1,4 @@
+from flask import g
 from flask_restplus import Resource, inputs, fields
 from flask_restplus.reqparse import RequestParser
 
@@ -44,7 +45,12 @@ class Register(Resource):
         new_user = User(**res, superuser=True, hrm_support=True, payroll_support=True, disabled=True)
         new_user.set_password(res.password)
         new_user.save()
-        send_mail.queue()
+        msg = f"""
+        Your account has been created.
+        Goto this link to activate your account.
+        <a href='{g.frontend}/app/activate-account?token={new_user.create_token()}'>Link</>
+        """
+        send_mail.queue('YINPAY', msg, [new_user.email_address])
         return flash(message='Your account has been created')
 
 

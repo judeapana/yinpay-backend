@@ -1,13 +1,15 @@
-from flask import jsonify, current_app
+from flask import jsonify, current_app, request, g
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, create_refresh_token, current_user, \
     get_jwt
-from flask_restplus import Resource, abort, fields
+from flask_restplus import Resource, fields
 from flask_restplus.reqparse import RequestParser
 
+from yinpay.common.helpers import flash
 from yinpay.ext import bcrypt, redis
 from yinpay.models import User
 from yinpay.resources.security import namespace
 from yinpay.schema import UserSchema
+from yinpay.tasks import send_mail
 
 parser = RequestParser(trim=True, bundle_errors=True)
 
@@ -31,18 +33,29 @@ class Login(Resource):
         res = parser.parse_args(strict=True)
         user = User.query.filter((User.email_address == res.username) | (User.username == res.username)).first()
         if not user:
-            return abort(401)
+            return flash(message='Authorization failed, incorrect credentials', code=401)
         else:
             if not bcrypt.check_password_hash(user.password, res.password):
-                return abort(401)
+                return flash(message='Authorization failed, incorrect credentials', code=401)
             else:
                 if user.disabled:
-                    return abort(401,
-                                 message='Your account is not active, to activate it request account activation link')
+                    msg = f"""
+                        Your account activation has been sent
+                        Goto this link to activate your account.
+                        <a href='{g.frontend}/app/activate-account?token={user.create_token()}'>Link</>
+                        """
+                    send_mail.queue('YINPAY Notification', msg, [user.email_address])
+                    return flash(message='Your account is not active, account activation link has been sent',
+                                 code=401)
                 else:
                     added_claims = schema.dump(obj=user)
                     access_token = create_access_token(identity=user, additional_claims=added_claims)
                     refresh_token = create_refresh_token(identity=user, additional_claims=added_claims)
+                    msg = f"""
+                        A device just logged into your account.<br/>
+                        IP: {request.remote_addr}
+                    """
+                    # send_mail.queue('YINPAY Notification', msg, [user.email_address])
                     return jsonify(access_token=access_token, refresh_token=refresh_token)
 
 
@@ -61,15 +74,16 @@ class Refresh(Resource):
 
 
 class Logout(Resource):
-    @jwt_required
+    @jwt_required()
     def post(self):
         """
         Logout user and setting jwt to redis [TTL] to blacklist token
         :return:
         """
+
         jwt_token_identity = get_jwt()['jti']
         redis.set(jwt_token_identity, "", ex=current_app.config['JWT_ACCESS_TOKEN_EXPIRES'])
-        return jsonify(message='Your session is closed')
+        return jsonify(message=['Your session is closed'])
 
 
 namespace.add_resource(Login, '/', endpoint='login')

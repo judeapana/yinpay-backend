@@ -22,6 +22,9 @@ search = namespace.model('SearchMixin', {
     'order_by': fields.String(default='created')
 })
 
+selector = namespace.parser()
+selector.add_argument('selector', required=True, type=str, location='args')
+
 
 class ProtectedDirResource(Resource):
 

@@ -17,6 +17,7 @@ class User(db.Model, Record):
     phone_number = db.Column(db.String(100), nullable=True)
     img = db.Column(db.String(50), nullable=True)
     disabled = db.Column(db.Boolean, default=True)
+    role = db.Column(db.Enum('ADMIN', 'USER'), default='USER')
     superuser = db.Column(db.Boolean, default=False)
     hrm_support = db.Column(db.Boolean, default=False)
     payroll_support = db.Column(db.Boolean, default=False)
@@ -24,8 +25,8 @@ class User(db.Model, Record):
     notes = db.Column(db.Text)
     business = db.relationship('Business', backref=db.backref('user'), cascade='all,delete,delete-orphan',
                                lazy='dynamic')
-    user_meta = db.relationship('UserMeta', backref=db.backref('user'), cascade='all,delete',
-                                lazy=True, uselist=False)
+    user_meta = db.relationship('UserMeta', backref=db.backref('user'), cascade='all,delete,delete-orphan',
+                                lazy='subquery', uselist=False)
 
     def set_password(self, password):
         self.password = bcrypt.generate_password_hash(password)
@@ -64,53 +65,53 @@ class Business(db.Model, Record):
                                         lazy='dynamic')
     setting = db.relationship('Setting', backref=db.backref('business'), cascade='all,delete', lazy=True, uselist=False)
     personnel_groups = db.relationship('PersonnelGroup', backref=db.backref('business'), cascade='all,delete',
-                                       lazy=True)
-    user_metas = db.relationship('UserMeta', backref=db.backref('business'), cascade='all,delete',
-                                 lazy=True)
+                                       lazy='dynamic')
+    user_metas = db.relationship('UserMeta', backref=db.backref('business'), cascade='all,delete,delete-orphan',
+                                 lazy='dynamic')
     next_of_kins = db.relationship('NextOfKin', backref=db.backref('business'), cascade='all,delete',
-                                   lazy=True)
-    banks = db.relationship('Bank', backref=db.backref('business'), cascade='all,delete',
-                            lazy=True)
-    bank_details = db.relationship('BankDetail', backref=db.backref('business'), cascade='all,delete',
-                                   lazy=True)
+                                   lazy='dynamic')
+    banks = db.relationship('Bank', backref=db.backref('business'), cascade='all,delete,delete-orphan',
+                            lazy='dynamic')
+    bank_details = db.relationship('BankDetail', backref=db.backref('business'), cascade='all,delete,delete-orphan',
+                                   lazy='dynamic')
     memos = db.relationship('Memo', backref=db.backref('business'), cascade='all,delete',
-                            lazy=True)
+                            lazy='dynamic')
     user_leaves = db.relationship('UserLeave', backref=db.backref('business'), cascade='all,delete',
-                                  lazy=True)
+                                  lazy='dynamic')
     user_docs = db.relationship('UserDoc', backref=db.backref('business'), cascade='all,delete',
-                                lazy=True)
+                                lazy='dynamic')
     departments = db.relationship('Department', backref=db.backref('business'), cascade='all,delete',
-                                  lazy=True)
+                                  lazy='dynamic')
     periods = db.relationship('Period', backref=db.backref('business'), cascade='all,delete',
-                              lazy=True)
+                              lazy='dynamic')
     working_days = db.relationship('WorkingDay', backref=db.backref('business'), cascade='all,delete',
-                                   lazy=True)
+                                   lazy='dynamic')
     daily_rates = db.relationship('DailyRate', backref=db.backref('business'), cascade='all,delete',
-                                  lazy=True)
+                                  lazy='dynamic')
     social_security_rates = db.relationship('SocialSecurityRate', backref=db.backref('business'), cascade='all,delete',
-                                            lazy=True)
+                                            lazy='dynamic')
     deduction_groups = db.relationship('DeductionGroup', backref=db.backref('business'), cascade='all,delete',
-                                       lazy=True)
+                                       lazy='dynamic')
     earning_groups = db.relationship('EarningGroup', backref=db.backref('business'), cascade='all,delete',
-                                     lazy=True)
+                                     lazy='dynamic')
     taxes = db.relationship('Tax', backref=db.backref('business'), cascade='all,delete',
-                            lazy=True)
+                            lazy='dynamic')
     attendances = db.relationship('Attendance', backref=db.backref('business'), cascade='all,delete',
-                                  lazy=True)
+                                  lazy='dynamic')
     user_attendances = db.relationship('UserAttendance', backref=db.backref('business'), cascade='all,delete',
-                                       lazy=True)
+                                       lazy='dynamic')
     user_deductions = db.relationship('UserDeduction', backref=db.backref('business'), cascade='all,delete',
-                                      lazy=True)
+                                      lazy='dynamic')
     user_earnings = db.relationship('UserEarning', backref=db.backref('business'), cascade='all,delete',
-                                    lazy=True)
+                                    lazy='dynamic')
     queues = db.relationship('Queue', backref=db.backref('business'), cascade='all,delete',
-                             lazy=True)
+                             lazy='dynamic')
 
 
 class BusinessAccount(db.Model, Record):
     id = db.Column(db.String(100), primary_key=True, nullable=False, unique=True, default=lambda: str(uuid4()))
     business_id = db.Column(db.String(100), db.ForeignKey('business.id', ondelete='cascade'), nullable=False)
-    name = db.Column(db.String(50), nullable=False)
+    # name = db.Column(db.String(50), nullable=False)
     account_type = db.Column(db.Enum('Bank Account', 'Mobile Money'))
     account_number = db.Column(db.String(50), nullable=False)
     code = db.Column(db.String(50), nullable=False)
@@ -169,10 +170,11 @@ class UserMeta(db.Model, Record):
     attendances = db.relationship('UserAttendance', backref=db.backref('user_meta'), cascade='all,delete,delete-orphan',
                                   lazy='dynamic')
 
-    user_deductions = db.relationship('UserDeduction', backref=db.backref('user_meta'), cascade='all,delete',
-                                      lazy=True)
-    user_earnings = db.relationship('UserEarning', backref=db.backref('user_meta'), cascade='all,delete',
-                                    lazy=True)
+    user_deductions = db.relationship('UserDeduction', backref=db.backref('user_meta'),
+                                      cascade='all,delete,delete-orphan',
+                                      lazy='dynamic')
+    user_earnings = db.relationship('UserEarning', backref=db.backref('user_meta'), cascade='all,delete,delete-orphan',
+                                    lazy='dynamic')
 
 
 class NextOfKin(db.Model, Record):
@@ -296,7 +298,7 @@ class DailyRate(db.Model, Record):
 class SocialSecurityRate(db.Model, Record):
     id = db.Column(db.String(100), primary_key=True, nullable=False, unique=True, default=lambda: str(uuid4()))
     business_id = db.Column(db.String(100), db.ForeignKey('business.id', ondelete='cascade'), nullable=False)
-    period_id = db.Column(db.String(100), db.ForeignKey('period.id', ondelete='cascade'), nullable=False, unique=True)
+    period_id = db.Column(db.String(100), db.ForeignKey('period.id', ondelete='cascade'), nullable=False)
     emp_rate = db.Column(db.Float, nullable=False)
     emper_rate = db.Column(db.Float, nullable=False)
     tier1 = db.Column(db.Float, nullable=False)
@@ -335,9 +337,9 @@ class EarningGroup(db.Model, Record):
 
 
 class Tax(db.Model, Record):
-    id = db.Column(db.String(100), primary_key=True, nullable=False, unique=True, default=lambda: uuid4())
+    id = db.Column(db.String(100), primary_key=True, nullable=False, unique=True, default=lambda: str(uuid4()))
     business_id = db.Column(db.String(100), db.ForeignKey('business.id', ondelete='cascade'), nullable=False)
-    period_id = db.Column(db.String(100), db.ForeignKey('period.id', ondelete='cascade'), nullable=False, unique=True)
+    period_id = db.Column(db.String(100), db.ForeignKey('period.id', ondelete='cascade'), nullable=False)
     personnel_group_id = db.Column(db.String(100), db.ForeignKey('personnel_group.id', ondelete='cascade'),
                                    nullable=False)
     name = db.Column(db.String(50), nullable=False)
@@ -352,7 +354,7 @@ class Attendance(db.Model, Record):
     business_id = db.Column(db.String(100), db.ForeignKey('business.id', ondelete='cascade'), nullable=False)
     name = db.Column(db.String(100), nullable=False)
     day = db.Column(db.Date, nullable=False)
-    period_id = db.Column(db.String(100), db.ForeignKey('period.id', ondelete='cascade'), nullable=False, unique=True)
+    period_id = db.Column(db.String(100), db.ForeignKey('period.id', ondelete='cascade'), nullable=False)
     disabled = db.Column(db.Boolean, default=False)
     notes = db.Column(db.Text, nullable=False)
     user_attendances = db.relationship('UserAttendance', backref=db.backref('attendance'),

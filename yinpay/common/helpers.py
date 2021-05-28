@@ -11,8 +11,8 @@ from werkzeug.utils import secure_filename
 from yinpay.common.exceptions import ValidationError, FlashError
 
 
-def flash(message):
-    return make_response(jsonify(message=message))
+def flash(message, code=200):
+    return make_response(jsonify(message=message), code)
 
 
 def get_uuid():
@@ -53,16 +53,14 @@ def file_upload(file_storage, base_dir='protected/file', allowed=None):
     return filename
 
 
-def roles_required(roles):
+def super_user_required():
     def wrapper(func):
         @wraps(func)
         def decorate(*args, **kwargs):
-            if not (current_user.role in roles):
+            if not current_user.superuser:
                 return abort(401)
             return func(*args, **kwargs)
 
         return decorate
 
     return wrapper
-
-

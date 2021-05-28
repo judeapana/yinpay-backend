@@ -1,43 +1,61 @@
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, current_user
 from flask_restplus import Resource, Namespace
 
+from yinpay.common.localns import selector
 from yinpay.ext import flask_filter, pagination, db
 from yinpay.models import Memo
 from yinpay.schema import MemoSchema
 
-namespace = Namespace('Memo', path='/memo',decorators=[jwt_required()])
+namespace = Namespace('Memo', path='/memo', decorators=[jwt_required()])
 
 schema = MemoSchema()
 
 
 class MemoListResource(Resource):
+    @namespace.expect(selector)
     def get(self):
-        search = Memo
+        res = selector.parse_args()
+        search = current_user.business.filter_by(id=res.selector).first_or_404().memos
         if namespace.payload:
-            search = flask_filter.search(Memo, [namespace.payload.get('filters')], MemoSchema(many=True),
+            search = flask_filter.search(current_user.business.filter_by(id=res.selector).first_or_404().memos,
+                                         [namespace.payload.get('filters')], MemoSchema(many=True),
                                          order_by=namespace.payload.get('order_by', 'created'))
         return pagination.paginate(search, schema, marshmallow=True)
 
+    @namespace.expect(selector)
     def post(self):
+        res = selector.parse_args()
+        bs = current_user.business.filter_by(id=res.selector).first_or_404()
         memo = Memo()
+        namespace.payload['business_id'] = bs.id
         memo = schema.load(namespace.payload, session=db.session, instance=memo, unknown='exclude')
         memo.save()
         return schema.dump(memo), 200
 
 
 class MemoResource(Resource):
+    @namespace.expect(selector)
     def get(self, pk):
-        memo = Memo.query.get_or_404(pk)
-        return memo, 200
+        res = selector.parse_args()
+        bs = current_user.business.filter_by(id=res.selector).first_or_404()
+        memo = Memo.query.filter(Memo.id == pk, Memo.business_id == bs.id).first_or_404()
+        return schema.dump(memo), 200
 
+    @namespace.expect(selector)
     def put(self, pk):
-        memo = Memo.query.get_or_404(pk)
+        res = selector.parse_args()
+        bs = current_user.business.filter_by(id=res.selector).first_or_404()
+        memo = Memo.query.filter(Memo.id == pk, Memo.business_id == bs.id).first_or_404()
+        namespace.payload['business_id'] = bs.id
         memo = schema.load(namespace.payload, session=db.session, instance=memo, unknown='exclude')
         memo.save()
         return schema.dump(memo), 200
 
+    @namespace.expect(selector)
     def delete(self, pk):
-        memo = Memo.query.get_or_404(pk)
+        res = selector.parse_args()
+        bs = current_user.business.filter_by(id=res.selector).first_or_404()
+        memo = Memo.query.filter(Memo.id == pk, Memo.business_id == bs.id).first_or_404()
         return memo.delete(), 200
 
 

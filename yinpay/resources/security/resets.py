@@ -1,3 +1,4 @@
+from flask import g
 from flask_restplus import Resource, fields, inputs
 from flask_restplus.reqparse import RequestParser
 
@@ -11,6 +12,11 @@ from yinpay.tasks import send_mail
 model = namespace.model('Reset', {
     'email_address': fields.String()
 })
+reset_model = namespace.model('ResetPwd', {
+    'email_address': fields.String(),
+    'password': fields.String(),
+    'token': fields.String()
+})
 parser = RequestParser(trim=True, bundle_errors=True)
 parser.add_argument('email_address', required=True, type=inputs.email(), location='json')
 parser.add_argument('password', required=True, type=password, location='json')
@@ -18,7 +24,8 @@ parser.add_argument('token', required=True, type=str, location='json')
 
 
 class ResetPwd(Resource):
-    def get(self):
+    @namespace.expect(reset_model)
+    def post(self):
         """
         reset user password [Validating Token on GET]
         :return:
@@ -27,15 +34,11 @@ class ResetPwd(Resource):
         parser.remove_argument('password')
         res = parser.parse_args()
         token = User.authenticate_token(res.token)
-        if token:
-            return flash(message='link is expired or already used'), 400
-        user = User.query.filter(User.id == token.get('id')).one_or_none()
-        if not user:
-            return flash(message='User could not be found'), 400
-        if not user.disabled:
-            return flash(message='Your account is already active')
-        return flash(message=True)
+        if not token:
+            return flash(message=['link is expired or already used'], code=400)
+        return flash(message=['Token session is active'])
 
+    @namespace.expect(reset_model)
     def put(self):
         """
         complete reset of user password [Validate Token on PUT]
@@ -44,16 +47,20 @@ class ResetPwd(Resource):
         parser.remove_argument('email_address')
         res = parser.parse_args()
         token = User.authenticate_token(res.token)
-        if token:
-            return flash(message='link is expired or already used'), 400
+        if not token:
+            return flash(message=['link is expired or already used'], code=400)
         user = User.query.filter(User.id == token.get('id')).one_or_none()
         if not user:
-            return flash(message='User could not be found'), 400
-        if not user.disabled:
-            return flash(message='Your account is already active')
+            return flash(message=['User could not be found'], code=400)
+        if user.disabled:
+            return flash(message=['Your account is not active'])
         user.set_password(res.password)
         user.save()
-        return flash(message='password reset successful')
+        msg = f"""
+                Your account password has been successfully reset.
+                """
+        send_mail.queue('YINPAY Notification', msg, [user.email_address])
+        return flash(message=['password reset successful'])
 
 
 class ForgotPassword(Resource):
@@ -70,11 +77,16 @@ class ForgotPassword(Resource):
         res = parser.parse_args()
         user = User.query.filter(User.email_address == res.email_address).first()
         if not user:
-            errors['email_address'] = "Your email address isn't registered"
+            errors['email_address'] = ["Your email address isn't registered"]
         if errors:
             raise ValidationError(message=errors)
-        send_mail.queue()
-        return flash(message='Reset link has been sent to your account'), 200
+        msg = f"""
+                You have request to reset your account password,<br/>
+                Goto the provided link below.<br/>
+                <a href='{g.frontend}/app/reset-pwd?token={user.create_token()}'>Link</>
+                """
+        send_mail.queue('YINPAY', msg, [user.email_address])
+        return flash(message=['Reset link has been sent to your account'])
 
 
 namespace.add_resource(ResetPwd, '/reset-pwd', endpoint='reset_pwd')
