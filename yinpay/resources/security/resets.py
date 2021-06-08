@@ -3,8 +3,7 @@ from flask_restplus import Resource, fields, inputs
 from flask_restplus.reqparse import RequestParser
 
 from yinpay import User
-from yinpay.common.exceptions import ValidationError
-from yinpay.common.helpers import flash
+from yinpay.common.helpers import flash, validation_error
 from yinpay.common.validators import password
 from yinpay.resources.security import namespace
 from yinpay.tasks import send_mail
@@ -53,7 +52,7 @@ class ResetPwd(Resource):
         if not user:
             return flash(message=['User could not be found'], code=400)
         if user.disabled:
-            return flash(message=['Your account is not active'])
+            return flash(message=['Your account is not active'], code=400)
         user.set_password(res.password)
         user.save()
         msg = f"""
@@ -79,7 +78,7 @@ class ForgotPassword(Resource):
         if not user:
             errors['email_address'] = ["Your email address isn't registered"]
         if errors:
-            raise ValidationError(message=errors)
+            return validation_error(errors)
         msg = f"""
                 You have request to reset your account password,<br/>
                 Goto the provided link below.<br/>

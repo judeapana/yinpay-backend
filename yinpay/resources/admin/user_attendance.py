@@ -27,7 +27,7 @@ class UserAttendanceListResource(Resource):
     @namespace.expect(selector)
     def post(self):
         sel = selector.parse_args()
-        bs = current_user.business.filter_by(id=sel.selector).first_or_404().user_attendances
+        bs = current_user.business.filter_by(id=sel.selector).first_or_404()
         ua = UserAttendance()
         namespace.payload['business_id'] = bs.id
         ua = schema.load(namespace.payload, session=db.session, instance=ua, unknown='exclude')
@@ -48,6 +48,7 @@ class UserAttendanceResource(Resource):
         sel = selector.parse_args()
         bs = current_user.business.filter_by(id=sel.selector).first_or_404()
         ua = UserAttendance.query.filter(UserAttendance.business_id == bs.id, UserAttendance.id == pk).first_or_404()
+        namespace.payload['business_id'] = bs.id
         ua = schema.load(namespace.payload, session=db.session, instance=ua, unknown='exclude')
         ua.save()
         return schema.dump(ua), 200

@@ -11,6 +11,7 @@ schema = QueueSchema()
 
 class QueueListResource(Resource):
     def get(self):
+
         search = Queue
         if namespace.payload:
             search = flask_filter.search(Queue, [namespace.payload.get('filters')], QueueSchema(many=True),

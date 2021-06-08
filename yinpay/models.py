@@ -270,6 +270,10 @@ class Period(db.Model, Record):
                             lazy='dynamic')
     attendances = db.relationship('Attendance', backref=db.backref('period'), cascade='all,delete,delete-orphan',
                                   lazy='dynamic')
+    user_earnings = db.relationship('UserEarning', backref=db.backref('period'), cascade='all,delete,delete-orphan',
+                                    lazy='dynamic')
+    user_deduction = db.relationship('UserDeduction', backref=db.backref('period'), cascade='all,delete,delete-orphan',
+                                     lazy='dynamic')
 
 
 class WorkingDay(db.Model, Record):
@@ -311,11 +315,11 @@ class DeductionGroup(db.Model, Record):
     name = db.Column(db.String(50), nullable=False)
     personnel_group_id = db.Column(db.String(100), db.ForeignKey('personnel_group.id', ondelete='cascade'),
                                    nullable=False)
-    amount = db.Column(db.Numeric(10, 2, asdecimal=False))
+    # amount = db.Column(db.Numeric(10, 2, asdecimal=False))
     disabled = db.Column(db.Boolean, default=False)
     notes = db.Column(db.Text, nullable=False)
     per_day = db.Column(db.Boolean, default=False)
-    user_deductions = db.relationship('UserDeduction', backref=db.backref('DeductionGroup'),
+    user_deductions = db.relationship('UserDeduction', backref=db.backref('deduction_group'),
                                       cascade='all,delete,delete-orphan',
                                       lazy='dynamic')
 
@@ -326,7 +330,7 @@ class EarningGroup(db.Model, Record):
     name = db.Column(db.String(50), nullable=False)
     personnel_group_id = db.Column(db.String(100), db.ForeignKey('personnel_group.id', ondelete='cascade'),
                                    nullable=False)
-    amount = db.Column(db.Numeric(10, 2, asdecimal=False))
+    # amount = db.Column(db.Numeric(10, 2, asdecimal=False))
     disabled = db.Column(db.Boolean, default=False)
     notes = db.Column(db.Text, nullable=False)
     per_day = db.Column(db.Boolean, default=False)
@@ -370,9 +374,8 @@ class UserAttendance(db.Model, Record):
     user_meta_id = db.Column(db.String(100), db.ForeignKey('user_meta.id', ondelete='cascade'), nullable=False)
     attendance_id = db.Column(db.String(100), db.ForeignKey('attendance.id', ondelete='cascade'), nullable=False)
     attype = db.Column(db.Enum('Absent', 'Excused Duty', 'Present'), nullable=False)
-    clock_in_date = db.Column(db.DateTime, nullable=False)
-    clock_out_date = db.Column(db.DateTime, nullable=False)
-    # this is just for a day clock in clock out
+    time = db.Column(db.DateTime, nullable=False)
+    type = db.Column(db.Enum('Clock In', 'Clock Out'), nullable=False)
 
 
 class UserDeduction(db.Model, Record):
@@ -381,6 +384,7 @@ class UserDeduction(db.Model, Record):
     user_meta_id = db.Column(db.String(100), db.ForeignKey('user_meta.id', ondelete='cascade'), nullable=False)
     deduction_group_id = db.Column(db.String(100), db.ForeignKey('deduction_group.id', ondelete='cascade'),
                                    nullable=False)
+    period_id = db.Column(db.String(100), db.ForeignKey('period.id', ondelete='cascade'), nullable=True)
     rate = db.Column(db.Float, nullable=True)
     disabled = db.Column(db.Boolean, default=False)
     # a user should be deducted buy the sme deduction group [Not duplication for same user_meta and deduction group]
@@ -391,6 +395,7 @@ class UserEarning(db.Model, Record):
     business_id = db.Column(db.String(100), db.ForeignKey('business.id', ondelete='cascade'), nullable=False)
     user_meta_id = db.Column(db.String(100), db.ForeignKey('user_meta.id', ondelete='cascade'), nullable=False)
     earning_group_id = db.Column(db.String(100), db.ForeignKey('earning_group.id', ondelete='cascade'), nullable=False)
+    period_id = db.Column(db.String(100), db.ForeignKey('period.id', ondelete='cascade'), nullable=True)
     rate = db.Column(db.Float, nullable=True)
     disabled = db.Column(db.Boolean, default=False)
     # a user should be deducted buy the sme earnings group [Not duplication for same user_meta and earning group]
@@ -407,7 +412,7 @@ class Setting(db.Model, Record):
     id = db.Column(db.String(100), primary_key=True, nullable=False, unique=True, default=lambda: str(uuid4()))
     business_id = db.Column(db.String(100), db.ForeignKey('business.id', ondelete='cascade'), nullable=False,
                             unique=True)
-    retirement_age = db.Column(db.Integer, nullable=False)
+    retirement_age = db.Column(db.Integer, nullable=False, default=60)
     notify_payment_by_sms = db.Column(db.Boolean, default=False)
     notify_payment_by_email = db.Column(db.Boolean, default=False)
     enable_user_account = db.Column(db.Boolean, default=False)

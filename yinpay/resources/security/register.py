@@ -3,8 +3,7 @@ from flask_restplus import Resource, inputs, fields
 from flask_restplus.reqparse import RequestParser
 
 from yinpay import User
-from yinpay.common.exceptions import ValidationError
-from yinpay.common.helpers import flash
+from yinpay.common.helpers import flash, validation_error
 from yinpay.common.validators import tel, password, character, username
 from yinpay.resources.security import namespace
 from yinpay.tasks import send_mail
@@ -41,7 +40,7 @@ class Register(Resource):
         if user_named:
             errors['username'] = ['username already exists']
         if errors:
-            raise ValidationError(message=errors)
+            return validation_error(errors)
         new_user = User(**res, superuser=True, hrm_support=True, payroll_support=True, disabled=True)
         new_user.set_password(res.password)
         new_user.save()

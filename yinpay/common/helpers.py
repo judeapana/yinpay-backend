@@ -15,6 +15,10 @@ def flash(message, code=200):
     return make_response(jsonify(message=message), code)
 
 
+def validation_error(errors, code=400):
+    return make_response(jsonify(message="Input payload validation failed", errors=errors), code)
+
+
 def get_uuid():
     with current_app.app_context():
         return request.path.split('/')[-1] or None

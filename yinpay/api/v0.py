@@ -8,7 +8,7 @@ from marshmallow.exceptions import ValidationError as MarshmallowErrors
 from yinpay.common.exceptions import ValidationError, FlashError
 from yinpay.resources.admin import business, user_manager, department, bank, bank_detail, business_account, memo, \
     next_of_kin, period, attendance, daily_rate, working_day, social_security_rate, tax, user_leave, earning_group, \
-    deduction_group, user_deduction, user_earning
+    deduction_group, user_deduction, user_earning, user_attendance, upload, user_doc, settings
 from yinpay.resources.admin import personnel_group
 from yinpay.resources.security import namespace as auth
 
@@ -31,8 +31,12 @@ api.add_namespace(memo)
 api.add_namespace(next_of_kin)
 api.add_namespace(daily_rate)
 api.add_namespace(attendance)
+api.add_namespace(upload)
+api.add_namespace(user_doc)
+api.add_namespace(settings)
 api.add_namespace(working_day)
 api.add_namespace(social_security_rate)
+api.add_namespace(user_attendance)
 api.add_namespace(tax)
 api.add_namespace(user_leave)
 api.add_namespace(earning_group)
@@ -56,7 +60,7 @@ def watcher():
 
 @yinapi.errorhandler(ValidationError)
 def schema_errors(errors):
-    abort(HTTPStatus.BAD_REQUEST, 'Input validation failed', errors=errors.messages)
+    return abort(HTTPStatus.BAD_REQUEST, 'Input validation failed', errors=errors.messages)
 
 
 @yinapi.errorhandler(FlashError)

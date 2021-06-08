@@ -1,14 +1,15 @@
 import werkzeug
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, current_user
 from flask_restplus import Resource, Namespace
 from flask_restplus.reqparse import RequestParser
 
 from yinpay import User
 from yinpay.common.helpers import img_upload, delete_file, file_upload
+from yinpay.common.localns import selector
 from yinpay.models import Business, UserDoc
 from yinpay.schema import UserSchema, BusinessSchema, UserDocSchema
 
-namespace = Namespace('upload_manager', description='', path='/upload',decorators=[jwt_required()])
+namespace = Namespace('upload_manager', description='', path='/upload', decorators=[jwt_required()])
 
 parser = RequestParser(trim=True, bundle_errors=True)
 parser.add_argument('img', type=werkzeug.datastructures.FileStorage, location='files')
@@ -101,5 +102,5 @@ class FileUploadResource(Resource):
             return user_doc_schema.dump(user_doc)
 
 
-namespace.add_resource(ImgUploadResource, '/img/<uuid>')
-namespace.add_resource(FileUploadResource, '/file/<uuid>')
+namespace.add_resource(ImgUploadResource, '/img/<pk>')
+namespace.add_resource(FileUploadResource, '/file/<pk>')

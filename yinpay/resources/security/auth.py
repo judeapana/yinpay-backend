@@ -20,7 +20,7 @@ model = namespace.model('Auth', {
     'username': fields.String(),
     'password': fields.String(),
 })
-schema = UserSchema()
+schema = UserSchema(exclude=('business','user_meta'))
 
 
 class Login(Resource):
