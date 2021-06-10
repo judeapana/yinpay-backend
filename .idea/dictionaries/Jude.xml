@@ -12,6 +12,7 @@
       <w>fname</w>
       <w>lname</w>
       <w>ltype</w>
+      <w>nprogress</w>
       <w>otype</w>
       <w>paye</w>
       <w>perpage</w>

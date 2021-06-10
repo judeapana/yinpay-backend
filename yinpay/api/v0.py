@@ -5,7 +5,8 @@ from flask import g
 from flask_restplus import Api, abort
 from marshmallow.exceptions import ValidationError as MarshmallowErrors
 
-from yinpay.common.exceptions import ValidationError, FlashError
+from yinpay.common.exceptions import FlashError
+from yinpay.common.helpers import validation_error
 from yinpay.resources.admin import business, user_manager, department, bank, bank_detail, business_account, memo, \
     next_of_kin, period, attendance, daily_rate, working_day, social_security_rate, tax, user_leave, earning_group, \
     deduction_group, user_deduction, user_earning, user_attendance, upload, user_doc, settings
@@ -58,11 +59,6 @@ def watcher():
         g.frontend = 'https://yinpy.yinime.com'
 
 
-@yinapi.errorhandler(ValidationError)
-def schema_errors(errors):
-    return abort(HTTPStatus.BAD_REQUEST, 'Input validation failed', errors=errors.messages)
-
-
 @yinapi.errorhandler(FlashError)
 def flash_error(f):
     abort(HTTPStatus.BAD_REQUEST, 'Flash message error', flash=f.messages)
@@ -70,4 +66,4 @@ def flash_error(f):
 
 @yinapi.errorhandler(MarshmallowErrors)
 def marshmallow_errors(errors):
-    abort(HTTPStatus.BAD_REQUEST, 'Input validation failed', errors=errors.messages)
+    return validation_error(errors=errors.messages, code=400)

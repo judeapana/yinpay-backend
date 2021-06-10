@@ -25,9 +25,9 @@ model = namespace.model('Business', {
 class BusinessListResource(Resource):
 
     def get(self):
-        search = Business
+        search = current_user.business
         if namespace.payload:
-            search = flask_filter.search(current_user.business, [namespace.payload.get('filters')],
+            search = flask_filter.search(search, [namespace.payload.get('filters')],
                                          BusinessSchema(many=True),
                                          order_by=namespace.payload.get('order_by', 'created'))
         return pagination.paginate(search, schema, marshmallow=True)
@@ -38,7 +38,6 @@ class BusinessListResource(Resource):
         business = schema.load(namespace.payload, session=db.session, instance=business, unknown='exclude')
         current_user.business.append(business)
         current_user.save()
-
         return schema.dump(business), 200
 
 

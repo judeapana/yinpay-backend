@@ -2,13 +2,12 @@ import os
 import secrets
 from functools import wraps
 
-from PIL.Image import Image
+from PIL import Image
 from flask import make_response, jsonify, request, current_app
 from flask_jwt_extended import current_user
 from flask_restplus import abort
+from marshmallow import ValidationError
 from werkzeug.utils import secure_filename
-
-from yinpay.common.exceptions import ValidationError, FlashError
 
 
 def flash(message, code=200):
@@ -35,13 +34,13 @@ def img_upload(file_storage, resize=(450, 450), base_dir='protected/img', allowe
     image = Image.open(file_storage)
     image.thumbnail(resize)
     file_storage.save(os.path.join(current_app.root_path, 'static', f'{base_dir}/{cur_file_name}'))
-    return filename
+    return cur_file_name
 
 
 def delete_file(filename, base_dir='protected'):
     path = os.path.join(current_app.root_path, 'static', f'{base_dir}/{filename}')
     if not os.path.isfile(path):
-        raise FlashError('File Not Found')
+        return flash('File Not Found', 400)
     os.remove(path)
 
 

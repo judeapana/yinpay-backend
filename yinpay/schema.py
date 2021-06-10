@@ -1,6 +1,7 @@
 from flask import request
 from flask_jwt_extended import current_user
 from marshmallow import fields, ValidationError, validates, validates_schema, pre_load
+from marshmallow.validate import Length
 
 from yinpay import ma
 from yinpay.common.helpers import get_uuid
@@ -55,10 +56,12 @@ class BusinessSchema(ma.SQLAlchemyAutoSchema):
         include_fk = True
         load_instance = True
         include_relationship = True
+        exclude = ('user_id',)
 
-    name = fields.String(required=True, validate=[username])
+    name = fields.String(required=True, validate=[Length(3)])
     support_email = fields.Email()
     phone_number = fields.String(validate=[tel])
+    logo = fields.Url(dump_only=True)
 
     @pre_load
     def loader(self, data, **kwargs):
@@ -110,6 +113,7 @@ class PersonnelGroupSchema(ma.SQLAlchemyAutoSchema):
         include_fk = True
         load_instance = True
 
+    name = fields.String(validate=[Length(3)])
     users = fields.Nested(UserSchema, many=True, exclude=('business', 'user_meta'))
     deductions = fields.Nested('DeductionGroupSchema', many=True)
     earnings = fields.Nested('EarningGroupSchema', many=True)

@@ -67,10 +67,11 @@ class Refresh(Resource):
         refresh token when access token is about to expire or has expired
         :return:
         """
-        identity = get_jwt_identity()
-        added_claims = schema.dumps(obj=current_user)
-        access_token = create_access_token(identity, additional_claims=added_claims)
-        return jsonify(access_token=access_token)
+        # identity = get_jwt_identity()
+        added_claims = schema.dump(obj=current_user)
+        refresh_token = create_refresh_token(current_user, additional_claims=added_claims)
+        access_token = create_access_token(current_user,additional_claims=added_claims)
+        return jsonify(access_token=access_token, refresh_token=refresh_token)
 
 
 class Logout(Resource):
