@@ -57,7 +57,7 @@ class Business(db.Model, Record):
     phone_number = db.Column(db.String(50), nullable=False)
     logo = db.Column(db.String(100), nullable=True)
     btype = db.Column(db.Enum('Nonprofit Organization', 'Sole Proprietorship', 'Partnership', 'Corporation',
-                              'Limited Liability Company,'),
+                              'Limited Liability Company'),
                       nullable=False)
     description = db.Column(db.Text, nullable=False)
     business_accounts = db.relationship('BusinessAccount', backref=db.backref('business'),
@@ -136,7 +136,8 @@ class PersonnelGroup(db.Model, Record):
                                lazy='dynamic')
     taxes = db.relationship('Tax', backref=db.backref('personnel_group'), cascade='all,delete,delete-orphan',
                             lazy='dynamic')
-    working_days = db.relationship('WorkingDay', backref=db.backref('user_meta'), cascade='all,delete,delete-orphan',
+    working_days = db.relationship('WorkingDay', backref=db.backref('personnel_group'),
+                                   cascade='all,delete,delete-orphan',
                                    lazy='dynamic')
 
 
@@ -145,18 +146,18 @@ class UserMeta(db.Model, Record):
     business_id = db.Column(db.String(100), db.ForeignKey('business.id', ondelete='cascade'), nullable=False)
     user_id = db.Column(db.String(100), db.ForeignKey('user.id', ondelete='cascade'), nullable=False)
     personnel_group_id = db.Column(db.String(100), db.ForeignKey('personnel_group.id', ondelete='cascade'),
-                                   nullable=False)
-    department_id = db.Column(db.String(100), db.ForeignKey('department.id', ondelete='cascade'), nullable=False)
+                                   nullable=True)
+    department_id = db.Column(db.String(100), db.ForeignKey('department.id', ondelete='cascade'), nullable=True)
     title = db.Column(db.Enum('MRS', 'MISS', 'MR', 'MS'), nullable=True)
-    marital_status = db.Column(db.Enum('Married', 'Divorced', 'Widowed', 'Single'), nullable=False)
-    gender = db.Column(db.Enum('Male', 'Female'), nullable=False)
-    religion = db.Column(db.String(50), nullable=False)
+    marital_status = db.Column(db.Enum('Married', 'Divorced', 'Widowed', 'Single'), nullable=True)
+    gender = db.Column(db.Enum('Male', 'Female'), nullable=True)
+    religion = db.Column(db.String(50), nullable=True)
     retired = db.Column(db.Boolean, default=False)
     resigned = db.Column(db.Boolean, default=False)
     dob = db.Column(db.Date)
     addr = db.Column(db.Text, nullable=True)
-    ssn = db.Column(db.String(50), nullable=False)
-    tin = db.Column(db.String(50), nullable=False)
+    ssn = db.Column(db.String(50), nullable=True)
+    tin = db.Column(db.String(50), nullable=True)
     next_of_kins = db.relationship('NextOfKin', backref=db.backref('user_meta'), cascade='all,delete,delete-orphan',
                                    lazy='dynamic')
     bank_details = db.relationship('BankDetail', backref=db.backref('user_meta'), cascade='all,delete,delete-orphan',
@@ -185,7 +186,6 @@ class NextOfKin(db.Model, Record):
     last_name = db.Column(db.String(50), nullable=False)
     middle_name = db.Column(db.String(50), nullable=False)
     dob = db.Column(db.Date, nullable=False)
-    img = db.Column(db.String(100), nullable=True)
 
 
 class Bank(db.Model, Record):
@@ -203,7 +203,6 @@ class BankDetail(db.Model, Record):
     bank_id = db.Column(db.String(100), db.ForeignKey('bank.id', ondelete='cascade'), nullable=False)
     business_id = db.Column(db.String(100), db.ForeignKey('business.id', ondelete='cascade'), nullable=False)
     user_meta_id = db.Column(db.String(100), db.ForeignKey('user_meta.id', ondelete='cascade'), nullable=False)
-    code = db.Column(db.String(50), nullable=True)
     no = db.Column(db.String(50), nullable=False)
     branch = db.Column(db.String(100), nullable=False)
     disabled = db.Column(db.Boolean, default=False)
@@ -374,7 +373,7 @@ class UserAttendance(db.Model, Record):
     user_meta_id = db.Column(db.String(100), db.ForeignKey('user_meta.id', ondelete='cascade'), nullable=False)
     attendance_id = db.Column(db.String(100), db.ForeignKey('attendance.id', ondelete='cascade'), nullable=False)
     attype = db.Column(db.Enum('Absent', 'Excused Duty', 'Present'), nullable=False)
-    time = db.Column(db.DateTime, nullable=False)
+    time = db.Column(db.String(50), nullable=False)
     type = db.Column(db.Enum('Clock In', 'Clock Out'), nullable=False)
 
 

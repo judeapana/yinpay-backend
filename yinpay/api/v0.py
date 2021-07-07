@@ -7,6 +7,7 @@ from marshmallow.exceptions import ValidationError as MarshmallowErrors
 
 from yinpay.common.exceptions import FlashError
 from yinpay.common.helpers import validation_error
+from yinpay.common.localns import namespace as local_ns
 from yinpay.resources.admin import business, user_manager, department, bank, bank_detail, business_account, memo, \
     next_of_kin, period, attendance, daily_rate, working_day, social_security_rate, tax, user_leave, earning_group, \
     deduction_group, user_deduction, user_earning, user_attendance, upload, user_doc, settings
@@ -49,6 +50,7 @@ api.add_namespace(personnel_group)
 api.add_namespace(business)
 api.add_namespace(bank_detail)
 api.add_namespace(bank)
+api.add_namespace(local_ns)
 
 
 @yinapi.before_request

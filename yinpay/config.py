@@ -17,8 +17,9 @@ class Instance:
     SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root@localhost/yin_pay'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=40)
+    # JWT_ACCESS_TOKEN_EXPIRES = timedelta(seconds=5)
 
-    PAGINATE_PAGE_SIZE = 20
+    PAGINATE_PAGE_SIZE = 5
     # PAGINATE_RESOURCE_LINKS_ENABLED = False
 
 

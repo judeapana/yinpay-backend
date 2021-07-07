@@ -3,7 +3,7 @@ import os
 from flask import send_from_directory, current_app
 from flask_restplus import Namespace, fields, Resource
 
-namespace = Namespace('LocalNs', description='Local Namespace')
+namespace = Namespace('ns', description='Local Namespace')
 
 timestamp = namespace.model('TimestampMixin', {
     'id': fields.String(readonly=True),
@@ -29,7 +29,8 @@ selector.add_argument('selector', required=True, type=str, location='args')
 class ProtectedDirResource(Resource):
 
     def get(self, filename):
-        return send_from_directory(os.path.join(current_app.root_path, 'static', 'protected'), filename=filename)
+        return send_from_directory(os.path.join(current_app.root_path, 'static', 'protected'),
+                                   filename=filename)
 
 
 namespace.add_resource(ProtectedDirResource, '/static/<filename>', endpoint='protected_dir')

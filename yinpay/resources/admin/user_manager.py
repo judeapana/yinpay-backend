@@ -2,8 +2,9 @@ from flask import request
 from flask_jwt_extended import jwt_required, current_user
 from flask_restplus import Resource, Namespace, fields
 
+from yinpay.common.localns import selector
 from yinpay.ext import pagination, flask_filter, db
-from yinpay.models import User
+from yinpay.models import User, UserMeta
 from yinpay.schema import UserSchema, EmailAddressSchema, PasswordSchema
 
 namespace = Namespace('user_management', description='', path='/users', decorators=[jwt_required()])
@@ -33,6 +34,7 @@ parser.add_argument('selector', required=True, type=str, location='args')
 
 
 class UserManagerListResource(Resource):
+    @namespace.expect(selector)
     @namespace.expect(parser)
     def get(self):
         res = parser.parse_args()
@@ -45,12 +47,13 @@ class UserManagerListResource(Resource):
                 order_by=namespace.payload.get('order_by', 'created'))
         return pagination.paginate(search, schema, marshmallow=True)
 
+    @namespace.expect(selector)
     @namespace.expect(model)
     def post(self):
         business = current_user.business.filter_by(id=request.args.get('selector')).first_or_404()
-        namespace.payload['user_meta']['business_id'] = business.id
         user_schema = UserSchema()
         user = user_schema.load(namespace.payload, session=db.session, unknown='include')
+        user.user_meta = UserMeta(business_id=business.id)
         user.set_password(user.password)
         user.save()
         return user_schema.dump(user), 200
@@ -63,10 +66,15 @@ class UserManagerResource(Resource):
         return schema.dump(user), 200
 
     @namespace.expect(model)
+    @namespace.expect(selector)
     def put(self, pk):
         bs = current_user.business.filter_by(id=request.args.get('selector')).first_or_404()
-        namespace.payload['user_meta']['business_id'] = bs.id
-        user = User.query.filter(User.role == 'USER', User.id == pk).first_or_404()
+        if namespace.payload.get('user_meta'):
+            namespace.payload['user_meta']['business_id'] = bs.id
+        user_schema = UserSchema()
+        _user = User.query.filter(User.user_meta.has(business_id=bs.id), User.role == 'USER',
+                                  User.id == pk).first_or_404()
+        user = user_schema.load(namespace.payload, session=db.session, instance=_user, unknown='include')
         user = schema.load(namespace.payload, session=db.session, instance=user, unknown='include')
         user.save()
         return schema.dump(user), 200

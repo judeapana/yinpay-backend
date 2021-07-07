@@ -23,7 +23,7 @@ def get_uuid():
         return request.path.split('/')[-1] or None
 
 
-def img_upload(file_storage, resize=(450, 450), base_dir='protected/img', allowed=None):
+def img_upload(file_storage, resize=(750, 750), base_dir='protected', allowed=None):
     if allowed is None:
         allowed = ['png', 'jpg', 'jpeg', 'gif']
     filename = secure_filename(file_storage.filename)
@@ -44,7 +44,7 @@ def delete_file(filename, base_dir='protected'):
     os.remove(path)
 
 
-def file_upload(file_storage, base_dir='protected/file', allowed=None):
+def file_upload(file_storage, base_dir='protected', allowed=None):
     if allowed is None:
         allowed = ['pdf', 'docx', 'doc', 'zip', 'png', 'jpg', 'jpeg', 'gif']
     filename = secure_filename(file_storage.filename)
@@ -53,7 +53,7 @@ def file_upload(file_storage, base_dir='protected/file', allowed=None):
         raise ValidationError({'file': ['file extension not allowed', f'allowed extensions are {allowed}']})
     cur_file_name = f'{"".join(ext[:-1])}_{secrets.token_hex(20)}.{ext[-1]}'
     file_storage.save(os.path.join(current_app.root_path, 'static', f'{base_dir}/{cur_file_name}'))
-    return filename
+    return cur_file_name
 
 
 def super_user_required():

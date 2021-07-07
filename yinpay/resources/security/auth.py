@@ -20,7 +20,9 @@ model = namespace.model('Auth', {
     'username': fields.String(),
     'password': fields.String(),
 })
-schema = UserSchema(exclude=('business','user_meta'))
+schema = UserSchema(exclude=('business', 'user_meta'))
+
+
 
 
 class Login(Resource):
@@ -70,7 +72,7 @@ class Refresh(Resource):
         # identity = get_jwt_identity()
         added_claims = schema.dump(obj=current_user)
         refresh_token = create_refresh_token(current_user, additional_claims=added_claims)
-        access_token = create_access_token(current_user,additional_claims=added_claims)
+        access_token = create_access_token(current_user, additional_claims=added_claims)
         return jsonify(access_token=access_token, refresh_token=refresh_token)
 
 

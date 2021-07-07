@@ -36,18 +36,17 @@ class ImgUploadResource(Resource):
             return business_schema.dump(business)
 
     def put(self, pk):
-        parser.add_argument('filename', type=str)
-        res = parser.parse_args()
-        filename = img_upload(res.file)
-        if res.loc == 'user':
+        file = request.files['img']
+        filename = img_upload(file)
+        if request.args.get('loc') == 'user':
             user = User.query.get.get_or_404(pk)
             delete_file(user.img, base_dir='protected/img')
             user.img = filename
             user.save()
             return user_schema.dump(user)
-        if res.loc == 'logo':
+        if request.args.get('loc') == 'logo':
             business = Business.query.get_or_404(pk)
-            delete_file(business.img, base_dir='protected/img')
+            delete_file(business.logo, base_dir='protected/img')
             business.logo = filename
             business.save()
             return business_schema.dump(business)
@@ -71,20 +70,19 @@ class ImgUploadResource(Resource):
 
 class FileUploadResource(Resource):
     def post(self, pk):
-        res = parser.parse_args()
-        filename = file_upload(res.file)
-        if res.loc == 'doc':
-            user_doc = UserDoc.query.get.get_or_404(pk)
+        file = request.files['file']
+        filename = file_upload(file)
+        if request.args.get('loc') == 'doc':
+            user_doc = UserDoc.query.get_or_404(pk)
             user_doc.doc = filename
             user_doc.save()
-            return user_schema.dump(user_doc)
+            return user_doc_schema.dump(user_doc)
 
     def put(self, pk):
-        res = parser.parse_args()
-        filename = file_upload(res.file)
-
-        if res.loc == 'doc':
-            user_doc = UserDoc.query.get.get_or_404(pk)
+        file = request.files['file']
+        filename = file_upload(file)
+        if request.args.get('loc') == 'doc':
+            user_doc = UserDoc.query.get_or_404(pk)
             delete_file(user_doc.doc, base_dir='protected/file')
             user_doc.doc = filename
             user_doc.save()
@@ -92,9 +90,8 @@ class FileUploadResource(Resource):
 
     def delete(self, pk):
         res = parser.parse_args()
-
         if res.loc == 'doc':
-            user_doc = UserDoc.query.get.get_or_404(pk)
+            user_doc = UserDoc.query.get_or_404(pk)
             delete_file(user_doc.doc, base_dir='protected/file')
             user_doc.doc = ''
             user_doc.save()

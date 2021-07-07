@@ -45,6 +45,7 @@ class UserEarningResource(Resource):
     def put(self, pk):
         sel = selector.parse_args()
         bs = current_user.business.filter_by(id=sel.selector).first_or_404()
+
         user_earning = UserEarning.query.filter(UserEarning.business_id == bs.id, UserEarning.id == pk).first_or_404()
         namespace.payload['business_id'] = bs.id
         user_earning = schema.load(namespace.payload, session=db.session, instance=user_earning, unknown='exclude')

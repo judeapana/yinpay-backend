@@ -1,4 +1,4 @@
-from flask import request
+from flask import request, url_for
 from flask_jwt_extended import current_user
 from marshmallow import fields, ValidationError, validates, validates_schema, pre_load
 from marshmallow.validate import Length
@@ -25,7 +25,7 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
     first_name = fields.String(required=True)
     last_name = fields.String(required=True)
     business = fields.Nested('BusinessSchema', many=True)
-    user_meta = fields.Nested('UserMetaSchema', many=False, )
+    user_meta = fields.Nested('UserMetaSchema', many=False, exclude=('user', 'personnel_group', 'department'))
 
     @validates('username')
     def validate_username(self, value):
@@ -61,7 +61,7 @@ class BusinessSchema(ma.SQLAlchemyAutoSchema):
     name = fields.String(required=True, validate=[Length(3)])
     support_email = fields.Email()
     phone_number = fields.String(validate=[tel])
-    logo = fields.Url(dump_only=True)
+    logo = fields.Function(lambda x: url_for('api.protected_dir', filename=x.logo, _external=True) if x.logo else '')
 
     @pre_load
     def loader(self, data, **kwargs):
@@ -75,7 +75,8 @@ class BusinessSchema(ma.SQLAlchemyAutoSchema):
             if current_user.business.filter_by(name=data.get('name')).first():
                 errors['name'] = ['This name is already in use.']
         if request.method == 'PUT':
-            b = Business.query.filter(Business.name == data.get('name'), Business.id != get_uuid()).first()
+            b = Business.query.filter(Business.user_id == current_user.id, Business.name == data.get('name'),
+                                      Business.id != get_uuid()).first()
             if b:
                 errors['name'] = ['This name is already in use.']
         if errors:
@@ -98,9 +99,9 @@ class BusinessAccountSchema(ma.SQLAlchemyAutoSchema):
             if business.business_accounts.filter_by(account_name=data.get('account_name')).first():
                 errors['name'] = ['This name is already in use.']
         if request.method == 'PUT':
-            b = BusinessAccount.filter(BusinessAccount.business_id == data.get('business_id'),
-                                       BusinessAccount.account_name == data.get('account_name'),
-                                       BusinessAccount.id != get_uuid()).first()
+            b = BusinessAccount.query.filter(BusinessAccount.business_id == data.get('business_id'),
+                                             BusinessAccount.account_name == data.get('account_name'),
+                                             BusinessAccount.id != get_uuid()).first()
             if b:
                 errors['name'] = ['This name is already in use.']
         if errors:
@@ -128,9 +129,9 @@ class PersonnelGroupSchema(ma.SQLAlchemyAutoSchema):
             if business.personnel_groups.filter_by(name=data.get('name')).first():
                 errors['name'] = ['This name is already in use.']
         if request.method == 'PUT':
-            b = PersonnelGroupSchema.query.filter(PersonnelGroup.business_id == data.get('business_id'),
-                                                  PersonnelGroup.name == data.get('name'),
-                                                  PersonnelGroup.id != get_uuid()).first()
+            b = PersonnelGroup.query.filter(PersonnelGroup.business_id == data.get('business_id'),
+                                            PersonnelGroup.name == data.get('name'),
+                                            PersonnelGroup.id != get_uuid()).first()
             if b:
                 errors['name'] = ['This name is already in use.']
         if errors:
@@ -162,8 +163,8 @@ class NextOfKinSchema(ma.SQLAlchemyAutoSchema):
         include_fk = True
         load_instance = True
 
-    dob = fields.Date('%d-%m-%Y')
-    # user_meta = fields.Nested('UserMetaSchema', many=False,exclude=('next_of_kins',))
+    dob = fields.Date('%Y-%m-%d')
+    user_meta = fields.Nested('UserMetaSchema', many=False, only=('user',))
 
 
 class BankSchema(ma.SQLAlchemyAutoSchema):
@@ -225,7 +226,7 @@ class MemoSchema(ma.SQLAlchemyAutoSchema):
         include_fk = True
         load_instance = True
 
-    date = fields.Date('%d-%m-%Y')
+    date = fields.Date('%Y-%m-%d')
 
 
 class UserLeaveSchema(ma.SQLAlchemyAutoSchema):
@@ -234,8 +235,8 @@ class UserLeaveSchema(ma.SQLAlchemyAutoSchema):
         include_fk = True
         load_instance = True
 
-    from_date = fields.Date("%d-%m-%Y")
-    to_date = fields.Date("%d-%m-%Y")
+    from_date = fields.Date('%Y-%m-%d')
+    to_date = fields.Date('%Y-%m-%d')
 
     user_meta = fields.Nested(UserMetaSchema, only=('user',))
 
@@ -246,8 +247,9 @@ class UserDocSchema(ma.SQLAlchemyAutoSchema):
         include_fk = True
         load_instance = True
 
+    doc = fields.Function(lambda x: url_for('api.protected_dir', filename=x.doc, _external=True) if x.doc else '')
     user_meta = fields.Nested(UserMetaSchema, only=('user',))
-    date = fields.Date('%d-%m-%Y')
+    date = fields.Date('%Y-%m-%d')
 
 
 class DepartmentSchema(ma.SQLAlchemyAutoSchema):
@@ -287,7 +289,7 @@ class PeriodSchema(ma.SQLAlchemyAutoSchema):
     ssr = fields.Nested('SocialSecurityRateSchema', many=True)
     taxes = fields.Nested('TaxSchema', many=True)
     attendances = fields.Nested('AttendanceSchema', many=True)
-    month = fields.Date("%d-%m-%Y")
+    month = fields.Date('%Y-%m')
 
     @validates_schema
     def validate_business_name(self, data, **kwargs):
@@ -340,8 +342,8 @@ class DailyRateSchema(ma.SQLAlchemyAutoSchema):
         include_fk = True
         load_instance = True
 
-    # user_meta = fields.Nested(UserMetaSchema, exclude=('daily_rates',))
-    # period = fields.Nested(PeriodSchema, )
+    user_meta = fields.Nested(UserMetaSchema, only=('user',))
+    period = fields.Nested(PeriodSchema, only=('name',))
 
     @validates_schema
     def validate_period_business_user_meta(self, data, **kwargs):
@@ -479,7 +481,7 @@ class AttendanceSchema(ma.SQLAlchemyAutoSchema):
 
     period = fields.Nested(PeriodSchema, exclude=('attendances',))
     user_attendances = fields.Nested('UserAttendanceSchema', many=True)
-    day = fields.Date("%d-%m-%Y")
+    day = fields.Date("%Y-%m-%d")
 
     @validates_schema
     def validate(self, data, **kwargs):
@@ -505,7 +507,6 @@ class UserAttendanceSchema(ma.SQLAlchemyAutoSchema):
 
     user_meta = fields.Nested(UserMetaSchema, only=('user', 'id'))
     attendance = fields.Nested(AttendanceSchema, only=('name', 'id'))
-    time = fields.DateTime('%d-%m-%Y %H:%M:%S %p')
 
     @validates_schema
     def validate_user_meta_attendance(self, data, **kwargs):
@@ -536,6 +537,7 @@ class UserDeductionSchema(ma.SQLAlchemyAutoSchema):
 
     user_meta = fields.Nested(UserMetaSchema)
     deduction_group = fields.Nested(DeductionGroupSchema)
+    period = fields.Nested(PeriodSchema, only=('name',))
 
     @validates_schema
     def validate_deduction_group(self, data, **kwargs):
@@ -564,8 +566,9 @@ class UserEarningSchema(ma.SQLAlchemyAutoSchema):
         include_fk = True
         load_instance = True
 
-    user_meta = fields.Nested(UserMetaSchema)
+    user_meta = fields.Nested(UserMetaSchema,dump_only=True)
     earning_group = fields.Nested(EarningGroupSchema)
+    period = fields.Nested(PeriodSchema, only=('name',))
 
     @validates_schema
     def validate_earning_group(self, data, **kwargs):
