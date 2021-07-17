@@ -56,6 +56,8 @@ class PeriodResource(Resource):
         res = selector.parse_args()
         bs = current_user.business.filter_by(id=res.selector).first_or_404()
         period = Period.query.filter(Period.id == pk, Period.business_id == bs.id).first_or_404()
+        print(period)
+        exit()
         return period.delete(), 200
 
 

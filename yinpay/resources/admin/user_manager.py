@@ -5,11 +5,11 @@ from flask_restplus import Resource, Namespace, fields
 from yinpay.common.localns import selector
 from yinpay.ext import pagination, flask_filter, db
 from yinpay.models import User, UserMeta
-from yinpay.schema import UserSchema, EmailAddressSchema, PasswordSchema
+from yinpay.schema import UserSchema, EmailAddressSchema, PasswordSchema, UserMetaSchema
 
 namespace = Namespace('user_management', description='', path='/users', decorators=[jwt_required()])
 
-schema = UserSchema()
+schema = UserSchema(exclude=('user_meta.docs',))
 user_model = namespace.clone('User', {
     'username': fields.String(),
     'password': fields.String(),
@@ -69,13 +69,19 @@ class UserManagerResource(Resource):
     @namespace.expect(selector)
     def put(self, pk):
         bs = current_user.business.filter_by(id=request.args.get('selector')).first_or_404()
-        if namespace.payload.get('user_meta'):
-            namespace.payload['user_meta']['business_id'] = bs.id
         user_schema = UserSchema()
         _user = User.query.filter(User.user_meta.has(business_id=bs.id), User.role == 'USER',
                                   User.id == pk).first_or_404()
-        user = user_schema.load(namespace.payload, session=db.session, instance=_user, unknown='include')
-        user = schema.load(namespace.payload, session=db.session, instance=user, unknown='include')
+        if namespace.payload.get('user_meta'):
+            user_meta = namespace.payload['user_meta']
+            user_meta['business_id'] = bs.id
+            user_meta['user_id'] = _user.id
+            user_meta_schema = UserMetaSchema().load(user_meta, session=db.session, instance=_user.user_meta,
+                                                     unknown='include')
+            user_meta_schema.save()
+            del namespace.payload['user_meta']
+
+        user = user_schema.load(namespace.payload, session=db.session, unknown='include')
         user.save()
         return schema.dump(user), 200
 

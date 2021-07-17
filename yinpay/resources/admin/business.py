@@ -4,7 +4,7 @@ from flask_restplus import Resource, Namespace, fields
 from yinpay.ext import flask_filter, pagination, db
 from yinpay.schema import BusinessSchema
 from ...common.helpers import super_user_required
-from ...models import Business
+from ...models import Business, Setting
 
 namespace = Namespace('business', description='Super users will be able to create new business accounts',
                       path='/business',
@@ -36,6 +36,7 @@ class BusinessListResource(Resource):
     def post(self):
         business = Business()
         business = schema.load(namespace.payload, session=db.session, instance=business, unknown='exclude')
+        business.setting = Setting(notify_payment_by_sms=False, notify_payment_by_email=False)
         current_user.business.append(business)
         current_user.save()
         return schema.dump(business), 200

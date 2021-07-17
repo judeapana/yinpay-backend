@@ -10,7 +10,7 @@ from yinpay.common.helpers import validation_error
 from yinpay.common.localns import namespace as local_ns
 from yinpay.resources.admin import business, user_manager, department, bank, bank_detail, business_account, memo, \
     next_of_kin, period, attendance, daily_rate, working_day, social_security_rate, tax, user_leave, earning_group, \
-    deduction_group, user_deduction, user_earning, user_attendance, upload, user_doc, settings
+    deduction_group, user_deduction, user_earning, user_attendance, upload, user_doc, settings, profile, reports
 from yinpay.resources.admin import personnel_group
 from yinpay.resources.security import namespace as auth
 
@@ -51,6 +51,8 @@ api.add_namespace(business)
 api.add_namespace(bank_detail)
 api.add_namespace(bank)
 api.add_namespace(local_ns)
+api.add_namespace(profile)
+api.add_namespace(reports)
 
 
 @yinapi.before_request

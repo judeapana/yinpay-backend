@@ -25,3 +25,5 @@ from .user_leave import namespace as user_leave
 from .user_manager import namespace as user_manager
 from .user_manager import namespace as user_manager
 from .working_day import namespace as working_day
+from .profile import namespace as profile
+from .reports import namespace as reports

@@ -11,6 +11,34 @@ from yinpay.models import User, Business, BusinessAccount, PersonnelGroup, UserM
     Tax, Attendance, UserAttendance, UserDeduction, UserEarning, Queue, Setting
 
 
+class ProfileSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = User
+        include_fk = True
+        load_instance = True
+        include_relationship = True
+
+    username = fields.String(required=True, validate=[username])
+    phone_number = fields.String(required=True, validate=tel)
+    email_address = fields.Email(required=True)
+    first_name = fields.String(required=True)
+    last_name = fields.String(required=True)
+
+    @validates('username')
+    def validate_username(self, value):
+        if request.method == 'PUT':
+            user = User.query.filter(User.id != current_user.id, User.username == value).first()
+            if user:
+                raise ValidationError('Already registered to another account')
+
+    @validates('email_address')
+    def validate_email_address(self, value):
+        if request.method == 'PUT':
+            user = User.query.filter(User.id != current_user.id, User.email_address == value).first()
+            if user:
+                raise ValidationError('Already registered to another account')
+
+
 class UserSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = User
@@ -25,7 +53,8 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
     first_name = fields.String(required=True)
     last_name = fields.String(required=True)
     business = fields.Nested('BusinessSchema', many=True)
-    user_meta = fields.Nested('UserMetaSchema', many=False, exclude=('user', 'personnel_group', 'department'))
+    user_meta = fields.Nested('UserMetaSchema', many=False, exclude=('user', 'user_earnings', 'user_deductions'),
+                              dump_only=True)
 
     @validates('username')
     def validate_username(self, value):
@@ -141,7 +170,7 @@ class PersonnelGroupSchema(ma.SQLAlchemyAutoSchema):
 class UserMetaSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = UserMeta
-        # include_fk = True
+        include_fk = True
         load_instance = True
         unknown = 'include'
         include_relationship = True
@@ -155,7 +184,11 @@ class UserMetaSchema(ma.SQLAlchemyAutoSchema):
     docs = fields.Nested('UserDocSchema', many=True)
     daily_rates = fields.Nested('DailyRateSchema', many=True)
     attendances = fields.Nested('AttendanceSchema', many=True)
+    user_deductions = fields.Nested('UserDeductionSchema', many=True)
+    user_earnings = fields.Nested('UserEarningSchema', many=True)
 
+
+#
 
 class NextOfKinSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
@@ -207,7 +240,7 @@ class BankDetailSchema(ma.SQLAlchemyAutoSchema):
         if request.method == 'POST':
             if business.bank_details.filter_by(user_meta_id=data.get('user_meta_id'),
                                                bank_id=data.get('bank_id'), disabled=False).first():
-                errors['user_meta'] = ['This user can\'t have more than one active account']
+                errors['user_meta_id'] = ['This user can\'t have more than one active account']
         if request.method == 'PUT':
             b = BankDetail.query.filter(BankDetail.business_id == business.id, BankDetail.id != get_uuid(),
                                         BankDetail.disabled == False,
@@ -215,7 +248,7 @@ class BankDetailSchema(ma.SQLAlchemyAutoSchema):
                                         BankDetail.bank_id == data.get('bank_id'),
                                         ).first()
             if b:
-                errors['user_meta'] = ['This user can\'t have more than one active account']
+                errors['user_meta_id'] = ['This user can\'t have more than one active account']
         if errors:
             raise ValidationError(errors)
 
@@ -324,14 +357,14 @@ class WorkingDaySchema(ma.SQLAlchemyAutoSchema):
         if request.method == 'POST':
             if business.working_days.filter_by(period_id=data.get('period_id'),
                                                personnel_group_id=data.get('personnel_group_id')).first():
-                errors['personnel_group'] = ['Working days already exists for this personnel group']
+                errors['personnel_group_id'] = ['Working days already exists for this personnel group']
         if request.method == 'PUT':
             b = WorkingDay.query.filter(WorkingDay.business_id == data.get('business_id'),
                                         WorkingDay.period_id == data.get('period_id'),
                                         WorkingDay.personnel_group_id == data.get('personnel_group_id'),
                                         WorkingDay.id != get_uuid()).first()
             if b:
-                errors['personnel_group'] = ['Working days already exists for this personnel group']
+                errors['personnel_group_id'] = ['Working days already exists for this personnel group']
         if errors:
             raise ValidationError(errors)
 
@@ -352,13 +385,13 @@ class DailyRateSchema(ma.SQLAlchemyAutoSchema):
         if request.method == 'POST':
             if business.daily_rates.filter_by(period_id=data.get('period_id'),
                                               user_meta_id=data.get('user_meta_id')).first():
-                errors['period'] = ['This daily rate already exists for this user']
+                errors['period_id'] = ['This daily rate already exists for this user']
         if request.method == 'PUT':
             b = DailyRate.query.filter(DailyRate.business_id == data.get('business_id'),
                                        DailyRate.period_id == data.get('period_id'),
                                        DailyRate.id != get_uuid()).first()
             if b:
-                errors['period'] = ['This daily rate already exists for this user']
+                errors['period_id'] = ['This daily rate already exists for this user']
         if errors:
             raise ValidationError(errors)
 
@@ -377,13 +410,13 @@ class SocialSecurityRateSchema(ma.SQLAlchemyAutoSchema):
         business = current_user.business.filter_by(id=data.get('business_id')).first_or_404()
         if request.method == 'POST':
             if business.social_security_rates.filter_by(period_id=data.get('period_id')).first():
-                errors['period'] = ['This period already has a valid social security rate']
+                errors['period_id'] = ['This period already has a valid social security rate']
         if request.method == 'PUT':
             b = SocialSecurityRate.query.filter(SocialSecurityRate.business_id == data.get('business_id'),
                                                 SocialSecurityRate.period_id == data.get('period_id'),
                                                 SocialSecurityRate.id != get_uuid()).first()
             if b:
-                errors['period'] = ['This period already has a valid social security rate']
+                errors['period_id'] = ['This period already has a valid social security rate']
         if errors:
             raise ValidationError(errors)
 
@@ -429,7 +462,7 @@ class EarningGroupSchema(ma.SQLAlchemyAutoSchema):
         business = current_user.business.filter_by(id=data.get('business_id')).first_or_404()
         if request.method == 'POST':
             if not business.personnel_groups.filter_by(id=data.get('personnel_group_id')).first():
-                errors['personnel_group'] = ['Personnel group doesn\'t belong to this business']
+                errors['personnel_group_id'] = ['Personnel group doesn\'t belong to this business']
             if business.earning_groups.filter_by(name=data.get('name')).first():
                 errors['name'] = ['This name is already in use.']
         if request.method == 'PUT':
@@ -440,7 +473,7 @@ class EarningGroupSchema(ma.SQLAlchemyAutoSchema):
                 errors['name'] = ['This name is already in use.']
             if not Business.query.filter(Business.id == data.get('business_id'),
                                          Business.personnel_groups.any(id=data.get('personnel_group_id'))).first():
-                errors['personnel_group'] = ['Personnel group doesn\'t belong to this business']
+                errors['personnel_group_id'] = ['Personnel group doesn\'t belong to this business']
         if errors:
             raise ValidationError(errors)
 
@@ -535,8 +568,8 @@ class UserDeductionSchema(ma.SQLAlchemyAutoSchema):
         include_fk = True
         load_instance = True
 
-    user_meta = fields.Nested(UserMetaSchema)
-    deduction_group = fields.Nested(DeductionGroupSchema)
+    user_meta = fields.Nested(UserMetaSchema, dump_only=True, exclude=('user_deductions', 'user_earnings'))
+    deduction_group = fields.Nested(DeductionGroupSchema, exclude=('user_deductions',))
     period = fields.Nested(PeriodSchema, only=('name',))
 
     @validates_schema
@@ -548,14 +581,14 @@ class UserDeductionSchema(ma.SQLAlchemyAutoSchema):
             if user_meta.user_deductions.filter(UserDeduction.period_id == data.get('period_id'),
                                                 UserDeduction.deduction_group_id == data.get(
                                                     'deduction_group_id')).first():
-                errors['deduction_group'] = ['This deduction is already applied to this user']
+                errors['deduction_group_id'] = ['This deduction is already applied to this user']
         if request.method == 'PUT':
 
             if UserDeduction.query.filter(UserDeduction.id != get_uuid(),
                                           UserDeduction.user_meta.has(id=data.get('user_meta_id')),
                                           UserDeduction.period_id == data.get('period.id'),
                                           UserDeduction.business_id == data.get('business_id'), ).first():
-                errors['deduction_group'] = ['This deduction is already applied to this user']
+                errors['deduction_group_id'] = ['This deduction is already applied to this user']
         if errors:
             raise ValidationError(errors)
 
@@ -566,8 +599,8 @@ class UserEarningSchema(ma.SQLAlchemyAutoSchema):
         include_fk = True
         load_instance = True
 
-    user_meta = fields.Nested(UserMetaSchema,dump_only=True)
-    earning_group = fields.Nested(EarningGroupSchema)
+    user_meta = fields.Nested(UserMetaSchema, dump_only=True, exclude=('user_earnings', 'user_deductions'))
+    earning_group = fields.Nested(EarningGroupSchema, exclude=('user_earnings',))
     period = fields.Nested(PeriodSchema, only=('name',))
 
     @validates_schema
@@ -578,7 +611,7 @@ class UserEarningSchema(ma.SQLAlchemyAutoSchema):
         if request.method == 'POST':
             if user_meta.user_earnings.filter(UserDeduction.period_id == data.get('period_id'),
                                               UserEarning.earning_group_id == data.get('earning_group_id')).first():
-                errors['earning_group'] = ['This earning is already applied to this user']
+                errors['earning_group_id'] = ['This earning is already applied to this user']
         if request.method == 'PUT':
 
             if UserEarning.query.filter(UserEarning.business_id == data.get('business_id'),
@@ -586,7 +619,7 @@ class UserEarningSchema(ma.SQLAlchemyAutoSchema):
                                         UserDeduction.period_id == data.get('period.id'),
                                         UserEarning.id != get_uuid(),
                                         UserEarning.earning_group_id != data.get('earning_group_id'), ).first():
-                errors['earning_group'] = ['This earning is already applied to this user']
+                errors['earning_group_id'] = ['This earning is already applied to this user']
         if errors:
             raise ValidationError(errors)
 
@@ -603,8 +636,7 @@ class SettingSchema(ma.SQLAlchemyAutoSchema):
         model = Setting
         include_fk = True
         load_instance = True
-
-    business = fields.Nested(BusinessSchema)
+        include_relationship = True
 
 
 class EmailAddressSchema(ma.SQLAlchemyAutoSchema):
@@ -651,34 +683,39 @@ class CurUserNextKinSchema(ma.SQLAlchemyAutoSchema):
 
 
 class PayslipSchema(ma.Schema):
-    user = fields.Nested(UserSchema, many=False, only=('user_meta.user', 'user_meta.title'))
-    # absence = fields.Integer()
-    # excused = fields.Integer()
-    # present = fields.Integer()
-    # working_days = fields.Nested(WorkingDaySchema, many=False)
-    # without_pay_leave = fields.Integer()
-    # with_pay_leave = fields.Integer()
-    # days_worked = fields.Integer()
-    # daily_rate = fields.Nested(DailyRateSchema, many=False)
-    # basic_salary = fields.Float()
-    # hourly_rate = fields.Float()
-    # earnings = fields.List(fields.Dict())
-    # allowances = fields.List(fields.Dict())
-    # earning_allowances = fields.List(fields.Dict())
-    # total_earning_amt = fields.Float()
-    # total_allowance_amt = fields.Float()
-    # gross_salary = fields.Decimal(2)
-    # ssnit_rates = fields.Nested(SocialSecurityRateSchema, many=False)
-    # ssnit_emp_amt = fields.Decimal(2)
-    # ssnit_emper_amt = fields.Decimal(2)
-    # ssnit_total_amt = fields.Decimal(2)
-    # ssnit_tier1_amt = fields.Decimal(2)
-    # ssnit_tier2_amt = fields.Decimal(2)
-    # ssnit_total_tiers = fields.Decimal(2)
-    # taxable_income = fields.Decimal(2)
-    # tax_paye_value = fields.Decimal(2)
-    # tax_paye = fields.Decimal(2)
-    # deductions = fields.List(fields.Dict())
-    # total_deductions_amt = fields.Decimal(2)
-    # total_deduction = fields.Decimal(2)
-    # net_pay = fields.Decimal(2)
+    user = fields.Nested(UserSchema, many=False,
+                         only=('user_meta.user', 'user_meta.title', 'first_name', 'last_name','email_address','phone_number','img'
+                               ))
+    absence = fields.Integer()
+    excused = fields.Integer()
+    present = fields.Integer()
+    working_days = fields.Nested(WorkingDaySchema, many=False, only=('days', 'hours', 'disabled', 'notes'))
+    without_pay_leave = fields.Integer()
+    with_pay_leave = fields.Integer()
+    days_worked = fields.Integer()
+    daily_rate = fields.Nested(DailyRateSchema, many=False,
+                               only=('main_amount', 'emergency_amount', 'disabled', 'notes'))
+
+    basic_salary = fields.Float()
+    hourly_rate = fields.Float()
+    earnings = fields.List(fields.Dict())
+    allowances = fields.List(fields.Dict())
+    earning_allowances = fields.List(fields.Dict())
+    total_earning_amt = fields.Float()
+    total_allowance_amt = fields.Float()
+    gross_salary = fields.Float()
+    ssnit_rates = fields.Nested(SocialSecurityRateSchema, many=False, only=('emp_rate', 'emper_rate', 'tier1','tier2'))
+    ssnit_emp_amt = fields.Float()
+    ssnit_emper_amt = fields.Float()
+    ssnit_total_amt = fields.Float()
+    ssnit_tier1_amt = fields.Float()
+    ssnit_tier2_amt = fields.Float()
+    ssnit_total_tiers = fields.Float()
+    taxable_income = fields.Float()
+    tax_deductions = fields.List(fields.Dict())
+    tax_deduction_sum = fields.Float()
+    tax_paye = fields.Float()
+    deductions = fields.List(fields.Dict())
+    total_deductions_amt = fields.Float()
+    total_deduction = fields.Float()
+    net_pay = fields.Float()

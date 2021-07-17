@@ -63,48 +63,57 @@ class Business(db.Model, Record):
     business_accounts = db.relationship('BusinessAccount', backref=db.backref('business'),
                                         cascade='all,delete,delete-orphan',
                                         lazy='dynamic')
-    setting = db.relationship('Setting', backref=db.backref('business'), cascade='all,delete', lazy=True, uselist=False)
-    personnel_groups = db.relationship('PersonnelGroup', backref=db.backref('business'), cascade='all,delete',
+    setting = db.relationship('Setting', backref=db.backref('business'), cascade='all,delete,delete-orphan', lazy=True,
+                              uselist=False)
+    personnel_groups = db.relationship('PersonnelGroup', backref=db.backref('business'),
+                                       cascade='all,delete,delete-orphan',
                                        lazy='dynamic')
     user_metas = db.relationship('UserMeta', backref=db.backref('business'), cascade='all,delete,delete-orphan',
                                  lazy='dynamic')
-    next_of_kins = db.relationship('NextOfKin', backref=db.backref('business'), cascade='all,delete',
+    next_of_kins = db.relationship('NextOfKin', backref=db.backref('business'), cascade='all,delete,delete-orphan',
                                    lazy='dynamic')
     banks = db.relationship('Bank', backref=db.backref('business'), cascade='all,delete,delete-orphan',
                             lazy='dynamic')
     bank_details = db.relationship('BankDetail', backref=db.backref('business'), cascade='all,delete,delete-orphan',
                                    lazy='dynamic')
-    memos = db.relationship('Memo', backref=db.backref('business'), cascade='all,delete',
+    memos = db.relationship('Memo', backref=db.backref('business'), cascade='all,delete,delete-orphan',
                             lazy='dynamic')
-    user_leaves = db.relationship('UserLeave', backref=db.backref('business'), cascade='all,delete',
+    user_leaves = db.relationship('UserLeave', backref=db.backref('business'), cascade='all,delete,delete-orphan',
                                   lazy='dynamic')
-    user_docs = db.relationship('UserDoc', backref=db.backref('business'), cascade='all,delete',
+    user_docs = db.relationship('UserDoc', backref=db.backref('business'), cascade='all,delete,delete-orphan',
                                 lazy='dynamic')
-    departments = db.relationship('Department', backref=db.backref('business'), cascade='all,delete',
+    departments = db.relationship('Department', backref=db.backref('business'), cascade='all,delete,delete-orphan',
                                   lazy='dynamic')
-    periods = db.relationship('Period', backref=db.backref('business'), cascade='all,delete',
+
+    periods = db.relationship('Period', backref=db.backref('business'), cascade='all,delete,delete-orphan',
                               lazy='dynamic')
-    working_days = db.relationship('WorkingDay', backref=db.backref('business'), cascade='all,delete',
+
+    working_days = db.relationship('WorkingDay', backref=db.backref('business'), cascade='all,delete,delete-orphan',
                                    lazy='dynamic')
-    daily_rates = db.relationship('DailyRate', backref=db.backref('business'), cascade='all,delete',
+    daily_rates = db.relationship('DailyRate', backref=db.backref('business'), cascade='all,delete,delete-orphan',
                                   lazy='dynamic')
-    social_security_rates = db.relationship('SocialSecurityRate', backref=db.backref('business'), cascade='all,delete',
+    social_security_rates = db.relationship('SocialSecurityRate', backref=db.backref('business'),
+                                            cascade='all,delete,delete-orphan',
                                             lazy='dynamic')
-    deduction_groups = db.relationship('DeductionGroup', backref=db.backref('business'), cascade='all,delete',
+    deduction_groups = db.relationship('DeductionGroup', backref=db.backref('business'),
+                                       cascade='all,delete,delete-orphan',
                                        lazy='dynamic')
-    earning_groups = db.relationship('EarningGroup', backref=db.backref('business'), cascade='all,delete',
+    earning_groups = db.relationship('EarningGroup', backref=db.backref('business'),
+                                     cascade='all,delete,delete-orphan',
                                      lazy='dynamic')
-    taxes = db.relationship('Tax', backref=db.backref('business'), cascade='all,delete',
+    taxes = db.relationship('Tax', backref=db.backref('business'), cascade='all,delete,delete-orphan',
                             lazy='dynamic')
-    attendances = db.relationship('Attendance', backref=db.backref('business'), cascade='all,delete',
+    attendances = db.relationship('Attendance', backref=db.backref('business'), cascade='all,delete,delete-orphan',
                                   lazy='dynamic')
-    user_attendances = db.relationship('UserAttendance', backref=db.backref('business'), cascade='all,delete',
+    user_attendances = db.relationship('UserAttendance', backref=db.backref('business'),
+                                       cascade='all,delete,delete-orphan',
                                        lazy='dynamic')
-    user_deductions = db.relationship('UserDeduction', backref=db.backref('business'), cascade='all,delete',
+    user_deductions = db.relationship('UserDeduction', backref=db.backref('business'),
+                                      cascade='all,delete,delete-orphan',
                                       lazy='dynamic')
-    user_earnings = db.relationship('UserEarning', backref=db.backref('business'), cascade='all,delete',
+    user_earnings = db.relationship('UserEarning', backref=db.backref('business'), cascade='all,delete,delete-orphan',
                                     lazy='dynamic')
-    queues = db.relationship('Queue', backref=db.backref('business'), cascade='all,delete',
+    queues = db.relationship('Queue', backref=db.backref('business'), cascade='all,delete,delete-orphan',
                              lazy='dynamic')
 
 
@@ -170,7 +179,6 @@ class UserMeta(db.Model, Record):
                                   lazy='dynamic')
     attendances = db.relationship('UserAttendance', backref=db.backref('user_meta'), cascade='all,delete,delete-orphan',
                                   lazy='dynamic')
-
     user_deductions = db.relationship('UserDeduction', backref=db.backref('user_meta'),
                                       cascade='all,delete,delete-orphan',
                                       lazy='dynamic')
@@ -262,7 +270,6 @@ class Period(db.Model, Record):
                                    lazy='dynamic')
     daily_rates = db.relationship('DailyRate', backref=db.backref('period'), cascade='all,delete,delete-orphan',
                                   lazy='dynamic')
-
     ssr = db.relationship('SocialSecurityRate', backref=db.backref('period'), cascade='all,delete,delete-orphan',
                           lazy='dynamic')
     taxes = db.relationship('Tax', backref=db.backref('period'), cascade='all,delete,delete-orphan',
@@ -411,10 +418,5 @@ class Setting(db.Model, Record):
     id = db.Column(db.String(100), primary_key=True, nullable=False, unique=True, default=lambda: str(uuid4()))
     business_id = db.Column(db.String(100), db.ForeignKey('business.id', ondelete='cascade'), nullable=False,
                             unique=True)
-    retirement_age = db.Column(db.Integer, nullable=False, default=60)
     notify_payment_by_sms = db.Column(db.Boolean, default=False)
     notify_payment_by_email = db.Column(db.Boolean, default=False)
-    enable_user_account = db.Column(db.Boolean, default=False)
-    send_payslip = db.Column(db.Boolean, default=False)
-    enable_user_portal = db.Column(db.Boolean, default=False)
-    allow_tax_paye = db.Column(db.Boolean, default=True)

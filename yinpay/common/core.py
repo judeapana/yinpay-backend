@@ -78,7 +78,7 @@ class PaySlip:
                     return self.daily_rate.emergency_amount * self.days_worked
                 return self.daily_rate.main_amount * self.days_worked
             return 0
-        except Exception:
+        except Exception as e:
             return 0
 
     @property
@@ -203,16 +203,46 @@ class PaySlip:
     @property
     def tax_paye_value(self):
         try:
-            return [i for i in self.psl.personnel_group.taxes.all() if
+            return [i for i in self.psl.user_meta.personnel_group.taxes.all() if
                     i.period_id == self.period.id and i.name == 'Tax Paye'][0]
         except Exception:
-            pass
+            return None
+
+    @property
+    def taxes(self):
+        try:
+            return [i for i in self.psl.user_meta.personnel_group.taxes.all() if
+                    i.period_id == self.period.id and i.name != 'Tax Paye']
+        except Exception:
+            return None
+
+    @property
+    def tax_deductions(self):
+        taxes = {}
+        tax_list = []
+        try:
+            for tax in self.taxes:
+                taxes[tax.name] = self.basic_salary * (tax.rate / 100)
+            tax_list.append(taxes)
+            return tax_list
+        except Exception as e:
+            return None
+
+    @property
+    def tax_deduction_sum(self):
+        taxes = []
+        try:
+            for tax in self.taxes:
+                taxes.append(self.basic_salary * (tax.rate / 100))
+            return sum(taxes)
+        except Exception as e:
+            return None
 
     @property
     def tax_paye(self):
         if self.tax_paye_value:
             if self.tax_paye_value.automate:
-                return self.tax_paye_cal(self.taxable_income)
+                return float(self.tax_paye_cal(self.taxable_income).amount)
             return self.basic_salary * (self.tax_paye_value.rate / 100)
         else:
             return 0
@@ -235,22 +265,22 @@ class PaySlip:
 
     @property
     def total_deduction(self):
-        return self.ssnit_emp_amt + self.total_deductions_amt + self.tax_paye
+        return self.ssnit_emp_amt + self.total_deductions_amt + self.tax_paye + self.tax_deduction_sum
 
     @property
     def net_pay(self):
         return self.gross_salary - self.total_deduction
 
     def tax_paye_cal(self, taxable_income, _moneyed=moneyed.Money, currency='GHS'):
-        if taxable_income >= _moneyed(20000, currency):
-            return _moneyed(4657.25, currency) + (taxable_income - _moneyed(20000, currency)) * 0.3
-        elif taxable_income >= _moneyed(3539, currency):
-            return _moneyed(542, currency) + (taxable_income - _moneyed(3539, currency)) * 0.25
-        elif taxable_income >= _moneyed(539, currency):
-            return _moneyed(17, currency) + (taxable_income - _moneyed(539, currency)) * 0.175
-        elif taxable_income >= _moneyed(419, currency):
-            return _moneyed(5, currency) + (taxable_income - _moneyed(419, currency)) * 0.1
-        elif taxable_income >= _moneyed(319, currency):
+        if _moneyed(taxable_income, currency) >= _moneyed(20000, currency):
+            return _moneyed(4657.25, currency) + (_moneyed(taxable_income, currency) - _moneyed(20000, currency)) * 0.3
+        elif _moneyed(taxable_income, currency) >= _moneyed(3539, currency):
+            return _moneyed(542, currency) + (_moneyed(taxable_income, currency) - _moneyed(3539, currency)) * 0.25
+        elif _moneyed(taxable_income, currency) >= _moneyed(539, currency):
+            return _moneyed(17, currency) + (_moneyed(taxable_income, currency) - _moneyed(539, currency)) * 0.175
+        elif _moneyed(taxable_income, currency) >= _moneyed(419, currency):
+            return _moneyed(5, currency) + (_moneyed(taxable_income, currency) - _moneyed(419, currency)) * 0.1
+        elif _moneyed(taxable_income, currency) >= _moneyed(319, currency):
             return (taxable_income - _moneyed(319, currency)) * 0.05
-        elif taxable_income <= _moneyed(319, currency):
+        elif _moneyed(taxable_income, currency) <= _moneyed(319, currency):
             return _moneyed(0, currency)

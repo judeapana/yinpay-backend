@@ -3,7 +3,6 @@ from flask_restplus import Resource, Namespace
 
 from yinpay.common.localns import selector
 from yinpay.ext import db
-from yinpay.models import Setting
 from yinpay.schema import SettingSchema
 
 namespace = Namespace('setting', path='/setting', decorators=[jwt_required()])
@@ -15,9 +14,6 @@ class SettingResource(Resource):
     def get(self):
         sel = selector.parse_args()
         bs = current_user.business.filter_by(id=sel.selector).first_or_404()
-        if not Setting.query.filter(Setting.business_id == bs.id).first():
-            setting = Setting(business_id=bs.id)
-            setting.save()
         return schema.dump(bs.setting), 200
 
     @namespace.expect(selector)
@@ -30,4 +26,4 @@ class SettingResource(Resource):
         return schema.dump(setting), 200
 
 
-namespace.add_resource(SettingResource, '/')
+namespace.add_resource(SettingResource, '/', endpoint='settings')
