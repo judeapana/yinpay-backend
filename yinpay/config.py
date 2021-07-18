@@ -31,6 +31,7 @@ class Production(Instance):
     DEBUG = False
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=2)
     ENV = 'production'
-    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:Apana1jude1$$@localhost/yin_pay'
+    SQLALCHEMY_DATABASE_URI = 'postgresql://ysawxzjywtlhho:17d302684b872bc26b9e1b7d67d37c69d4e4b145728064344de7b5febec0a712@ec2-54-155-35-88.eu-west-1.compute.amazonaws.com:5432/d2loof4nu52h90'
     SQLALCHEMY_POOL_RECYCLE = 299
     SQLALCHEMY_POOL_TIMEOUT = 20
+    RQ_REDIS_URL = 'redis://:pc49c90ac53ed968ebc4264255032c88d1454cf13adc9f67469120159f4703204@ec2-54-195-111-186.eu-west-1.compute.amazonaws.com:15750'

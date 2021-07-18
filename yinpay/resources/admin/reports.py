@@ -1,10 +1,12 @@
 from flask import request
 from flask_jwt_extended import jwt_required
 from flask_restplus import Resource, Namespace
+from marshmallow import fields
 
-from yinpay import User
+from yinpay import User, ma
 from yinpay.common.core import PaySlip
-from yinpay.models import Period, UserLeave, UserAttendance
+from yinpay.common.helpers import flash
+from yinpay.models import Period, UserLeave, UserAttendance, Attendance
 from yinpay.schema import PayslipSchema, UserLeaveSchema, UserAttendanceSchema
 
 namespace = Namespace('reports', path='/reports', decorators=[jwt_required()])
@@ -81,18 +83,42 @@ class SsnitResource(Resource):
         return schema.dump(payroll, many=True), 200
 
 
+class LeaveAttendanceSchema(ma.Schema):
+    on = fields.Date('%Y-%m-%d')
+    _from = fields.Date(attribute='from')
+    _to = fields.Date(attribute='to')
+
+
 class AttendanceResource(Resource):
     def get(self):
-        user_leave = UserAttendance.query.filter(UserAttendance.attendance.has()).all()
-        schema = UserAttendanceSchema()
-        return schema.dump(user_leave, many=True), 200
+        schema = LeaveAttendanceSchema()
+        obj = UserAttendanceSchema()
+        schema = schema.load(request.args, unknown='include')
+        if schema.get('on'):
+            user_leave = UserAttendance.query.join(Attendance, UserAttendance.attendance_id == Attendance.id).filter(
+                Attendance.day == schema.get('on')).all()
+            return obj.dump(user_leave, many=True), 200
+        elif schema.get('from') and schema.get('to'):
+            user_leave = UserAttendance.query.join(Attendance, UserAttendance.attendance_id == Attendance.id).filter(
+                Attendance.day.between(schema.get('from'), schema.get('to'))).all()
+            return obj.dump(user_leave, many=True), 200
+        else:
+            return flash('No query parameters were found', 400)
 
 
 class LeaveResource(Resource):
     def get(self):
-        user_leave = UserLeave.query.filter(UserLeave.created.between()).all()
-        schema = UserLeaveSchema()
-        return schema.dump(user_leave, many=True), 200
+        schema = LeaveAttendanceSchema()
+        obj = UserLeaveSchema()
+        schema = schema.load(request.args, unknown='include')
+        if schema.get('on'):
+            user_leave = UserLeave.query.filter(UserLeave.from_date == schema.get('on')).all()
+            return obj.dump(user_leave, many=True)
+        elif schema.get('from') and schema.get('to'):
+            user_leave = UserLeave.query.filter(UserLeave.from_date.between(schema.get('from'), schema.get('to'))).all()
+            return obj.dump(user_leave, many=True)
+        else:
+            return flash('No query parameters were found', 400)
 
 
 class DashboardResource(Resource):
