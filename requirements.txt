@@ -26,7 +26,6 @@ constantly==15.1.0
 croniter==0.3.36
 cryptography==3.0
 decorator==4.4.2
-distro-info===0.18ubuntu0.18.04.1
 dnspython==1.16.0
 email-validator==1.1.1
 enum34==1.1.10
