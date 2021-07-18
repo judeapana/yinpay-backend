@@ -19,7 +19,6 @@ chardet==3.0.4
 click==7.1.2
 click-didyoumean==0.0.3
 click-repl==0.1.6
-cloud-init==20.2
 colorama==0.3.7
 colour==0.1.5
 command-not-found==0.3
