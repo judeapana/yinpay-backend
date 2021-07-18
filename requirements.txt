@@ -116,7 +116,6 @@ pyexcel-io==0.5.20
 pyexcel-webio==0.1.4
 pyexcel-xls==0.5.8
 pygal==2.4.0
-pygobject==3.26.1
 pyinotify==0.9.6
 PyJWT==2.0.1
 PyMySQL==0.9.3
