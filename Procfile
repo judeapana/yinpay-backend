@@ -1,2 +1,2 @@
 web: gunicorn app:app
-worker: flask rq worker
+worker: rq worker
