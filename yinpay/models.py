@@ -29,7 +29,7 @@ class User(db.Model, Record):
                                 lazy='subquery', uselist=False)
 
     def set_password(self, password):
-        self.password = bcrypt.generate_password_hash(password).decode('uft-8')
+        self.password = bcrypt.generate_password_hash(password).decode('utf-8')
 
     def create_token(self, payload=None, expires=5000):
         if payload is None:
