@@ -34,8 +34,8 @@ class Production(Instance):
     SQLALCHEMY_DATABASE_URI = 'postgresql://ysawxzjywtlhho:17d302684b872bc26b9e1b7d67d37c69d4e4b145728064344de7b5febec0a712@ec2-54-155-35-88.eu-west-1.compute.amazonaws.com:5432/d2loof4nu52h90'
     SQLALCHEMY_POOL_RECYCLE = 299
     SQLALCHEMY_POOL_TIMEOUT = 20
-    RQ_REDIS_URL = 'redis://:pc49c90ac53ed968ebc4264255032c88d1454cf13adc9f67469120159f4703204@ec2-54-195-111-186.eu-west-1.compute.amazonaws.com:15750'
-    REDIS_URL = 'redis://:pc49c90ac53ed968ebc4264255032c88d1454cf13adc9f67469120159f4703204@ec2-54-195-111-186.eu-west-1.compute.amazonaws.com:15750'
+    REDIS_URL = 'redis://:zZaMUKEGhlOeN0aU4AG95CT1ExRU7sz2@redis-15759.c251.east-us-mz.azure.cloud.redislabs.com:15759'
+    RQ_REDIS_URL = 'redis://:zZaMUKEGhlOeN0aU4AG95CT1ExRU7sz2@redis-15759.c251.east-us-mz.azure.cloud.redislabs.com:15759'
     MAIL_SERVER = 'smtp.mailtrap.io'
     MAIL_PORT = 2525
     MAIL_USERNAME = 'ccbfa2ade54399'
