@@ -10,4 +10,5 @@ def send_mail(subject: str, message: str, recipients: list):
         msg.html = message
         mail.send(msg)
     except Exception as e:
+        print(e)
         return e
