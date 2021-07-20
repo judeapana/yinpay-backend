@@ -37,10 +37,9 @@ class Production(Instance):
     SQLALCHEMY_POOL_TIMEOUT = 20
     REDIS_URL = 'redis://:zZaMUKEGhlOeN0aU4AG95CT1ExRU7sz2@redis-15759.c251.east-us-mz.azure.cloud.redislabs.com:15759'
     RQ_REDIS_URL = 'redis://:zZaMUKEGhlOeN0aU4AG95CT1ExRU7sz2@redis-15759.c251.east-us-mz.azure.cloud.redislabs.com:15759'
-    MAIL_SERVER = 'smtp.mailtrap.io'
-    MAIL_PORT = 2525
-    MAIL_USERNAME = 'ccbfa2ade54399'
-    MAIL_PASSWORD = '15ea0cf79e0bfb'
-    MAIL_USE_TLS = True
-    MAIL_USE_SSL = False
+    MAIL_SERVER = 'smtp.gmail.com'
+    MAIL_PORT = 465
+    MAIL_USE_SSL = True
+    MAIL_USERNAME = '0554apana@gmail.com'
+    MAIL_PASSWORD = 'apana1jude1$$'
 
