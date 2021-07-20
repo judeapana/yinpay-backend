@@ -42,3 +42,4 @@ class Production(Instance):
     MAIL_USE_SSL = True
     MAIL_USERNAME = '0554apana@gmail.com'
     MAIL_PASSWORD = 'apana1jude1$$'
+    MAIL_DEFAULT_SENDER = '0554apana@gmail.com'
