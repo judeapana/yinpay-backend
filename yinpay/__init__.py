@@ -7,7 +7,7 @@ from yinpay.models import db, User
 
 def create_app():
     app = Flask(__name__)
-    app.config.from_object(Production)
+    app.config.from_object(Development)
     db.init_app(app)
     cors.init_app(app, resources={r"/*": {"origins": "*"}})
     mail.init_app(app)

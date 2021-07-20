@@ -51,7 +51,7 @@ def file_upload(file_storage, base_dir='protected', allowed=None):
     ext = filename.split('.')
     if not (ext[-1] in allowed):
         raise ValidationError({'file': ['file extension not allowed', f'allowed extensions are {allowed}']})
-    cur_file_name = f'{"".join(ext[:-1])}_{secrets.token_hex(20)}.{ext[-1]}'
+    cur_file_name = f'{secrets.token_hex(6)}.{ext[-1]}'
     file_storage.save(os.path.join(current_app.root_path, 'static', f'{base_dir}/{cur_file_name}'))
     return cur_file_name
 
