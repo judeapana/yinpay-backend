@@ -13,7 +13,7 @@ class Instance:
     MAIL_USERNAME = 'no-reply@yinime.com'
     MAIL_PASSWORD = "apana1jude1"
     MAIL_DEFAULT_SENDER = 'no-reply@yinime.com'
-    # RQ_QUEUES = ['yin_pay_default']
+    RQ_QUEUES = ['yin_pay_default']
     SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root@localhost/yin_pay'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=40)
