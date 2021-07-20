@@ -60,7 +60,7 @@ def watcher():
     if current_app.config['DEBUG']:
         g.frontend = 'https://localhost:8080'
     else:
-        g.frontend = 'https://yinpy.yinime.com'
+        g.frontend = 'https://yinpay.yinime.com'
 
 
 @yinapi.errorhandler(FlashError)
