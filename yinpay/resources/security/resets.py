@@ -84,7 +84,7 @@ class ForgotPassword(Resource):
                 Goto the provided link below.<br/>
                 <a href='{g.frontend}/app/reset-pwd?token={user.create_token()}'>Link</>
                 """
-        send_mail.queue('YINPAY', msg, [user.email_address])
+        send_mail('YINPAY', msg, [user.email_address])
         return flash(message=['Reset link has been sent to your account'])
 
 
