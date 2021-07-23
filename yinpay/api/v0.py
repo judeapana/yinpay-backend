@@ -76,4 +76,4 @@ def marshmallow_errors(errors):
 
 @yinapi.errorhandler(ExpiredSignatureError)
 def expired(f):
-    return abort(HTTPStatus.UNAUTHORIZED)
+    abort(HTTPStatus.UNAUTHORIZED)
