@@ -37,9 +37,9 @@ class Production(Instance):
     SQLALCHEMY_POOL_TIMEOUT = 20
     REDIS_URL = 'redis://:zZaMUKEGhlOeN0aU4AG95CT1ExRU7sz2@redis-15759.c251.east-us-mz.azure.cloud.redislabs.com:15759'
     RQ_REDIS_URL = 'redis://:zZaMUKEGhlOeN0aU4AG95CT1ExRU7sz2@redis-15759.c251.east-us-mz.azure.cloud.redislabs.com:15759'
-    MAIL_SERVER = 'smtp.gmail.com'
-    MAIL_PORT = 465
+    MAIL_SERVER = 'smtp.netcorecloud.net'
+    MAIL_PORT = 587
     MAIL_USE_SSL = True
-    MAIL_USERNAME = '0554apana@gmail.com'
-    MAIL_PASSWORD = 'apana1jude1$$'
+    MAIL_USERNAME = 'androapana'
+    MAIL_PASSWORD = 'androapana_f2491830f36dd43c7ef4d34c0ae246c9'
     MAIL_DEFAULT_SENDER = '0554apana@gmail.com'

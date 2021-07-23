@@ -3,6 +3,7 @@ from http import HTTPStatus
 from flask import Blueprint, current_app
 from flask import g
 from flask_restplus import Api, abort
+from jwt import ExpiredSignatureError
 from marshmallow.exceptions import ValidationError as MarshmallowErrors
 
 from yinpay.common.exceptions import FlashError
@@ -71,3 +72,8 @@ def flash_error(f):
 @yinapi.errorhandler(MarshmallowErrors)
 def marshmallow_errors(errors):
     return validation_error(errors=errors.messages, code=400)
+
+
+@yinapi.errorhandler(ExpiredSignatureError)
+def expired():
+    return abort(HTTPStatus.UNAUTHORIZED)
